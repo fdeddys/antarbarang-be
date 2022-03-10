@@ -13,3 +13,15 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+invoice.pdf
+/.project
+
+*.pdf
+*.sh
+*.xls
+*.csv
+*.xlsx
+*.zip
+vendor/
+.idea/workspace.xml
