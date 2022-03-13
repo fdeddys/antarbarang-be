@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"com.ddabadi.antarbarang/router"
+
+	_ "com.ddabadi.antarbarang/database"
 )
 
 func main() {

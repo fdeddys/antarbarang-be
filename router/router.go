@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"com.ddabadi.antarbarang/dto"
 	handlers "com.ddabadi.antarbarang/handlers"
 	"github.com/gorilla/mux"
 )
@@ -24,7 +25,7 @@ func InitRouter() *mux.Router {
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.DriverHandler).Methods(http.MethodGet)
-	s.HandleFunc("/", handlers.DriverCreateHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
@@ -61,7 +62,7 @@ func InitRouter() *mux.Router {
 func cekToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-
+		dto.CurrUser = "system"
 		if token != "" {
 			// We found the token in our map
 			log.Printf("Authenticated user ")
