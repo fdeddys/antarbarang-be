@@ -25,3 +25,5 @@ invoice.pdf
 *.zip
 vendor/
 .idea/workspace.xml
+
+start.sh
