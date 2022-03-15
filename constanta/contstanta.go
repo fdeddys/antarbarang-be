@@ -19,3 +19,8 @@ const (
 	ERR_CODE_11                 = "11"
 	ERR_CODE_11_FAILED_GET_DATA = "Failed get data to database"
 )
+
+// const (
+// 	ACTIVE    = 1
+// 	NONACTIVE = 2
+// )

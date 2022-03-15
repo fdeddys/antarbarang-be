@@ -7,7 +7,7 @@ import (
 	"com.ddabadi.antarbarang/model"
 )
 
-func FindById(id int) (model.Driver, error) {
+func FindDriverById(id int) (model.Driver, error) {
 	db := database.GetConn
 
 	sqlStatement := `

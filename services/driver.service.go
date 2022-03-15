@@ -52,7 +52,7 @@ func (d *DriverService) GetDriverByID(id int) dto.ContentResponse {
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	driver, err := repository.FindById(id)
+	driver, err := repository.FindDriverById(id)
 	if err != nil {
 		result.ErrCode = constanta.ERR_CODE_11
 		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
