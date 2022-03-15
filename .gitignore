@@ -26,4 +26,4 @@ invoice.pdf
 vendor/
 .idea/workspace.xml
 
-start.sh
+/start.sh
