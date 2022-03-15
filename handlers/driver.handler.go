@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
+	"com.ddabadi.antarbarang/constanta"
+	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/model"
 	"com.ddabadi.antarbarang/services"
+	"github.com/gorilla/mux"
 )
 
 var driverService = new(services.DriverService)
@@ -31,10 +35,19 @@ func DriverCreateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(result))
 }
 
-func DriverHandler(w http.ResponseWriter, r *http.Request) {
+func DriverGetByIDrHandler(w http.ResponseWriter, r *http.Request) {
 
-	driver := driverService.GetDriverByID()
-	result, _ := json.Marshal(driver)
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = err.Error()
+		return
+	}
+	resp := driverService.GetDriverByID(id)
+	result, _ := json.Marshal(resp)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))

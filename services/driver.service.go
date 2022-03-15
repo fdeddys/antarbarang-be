@@ -9,6 +9,7 @@ import (
 	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/model"
+	"com.ddabadi.antarbarang/repository"
 )
 
 type DriverService struct {
@@ -46,22 +47,18 @@ func (d *DriverService) CreateDriver(driver model.Driver) dto.ContentResponse {
 	return result
 }
 
-func (d *DriverService) GetDriverByID() dto.ContentResponse {
-	t := time.Now().Unix()
-	return dto.ContentResponse{
-		ErrCode: "00",
-		ErrDesc: "OK",
-		Contents: model.Driver{
-			ID:           0,
-			Picture:      "",
-			Address:      "",
-			Hp:           "",
-			Name:         "",
-			Status:       0,
-			LastUpdateBy: fmt.Sprintf("%v", time.Unix(0, time.Now().UnixNano())),
-			LastUpdate:   t,
-			// LastUpdate:   fmt.Sprintf("%v", time.Unix(t, 0)),
-			Code: "",
-		},
+func (d *DriverService) GetDriverByID(id int) dto.ContentResponse {
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	driver, err := repository.FindById(id)
+	if err != nil {
+		result.ErrCode = constanta.ERR_CODE_11
+		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
+		result.Contents = err.Error()
+		return result
 	}
+	result.Contents = driver
+	return result
 }

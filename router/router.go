@@ -24,7 +24,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()
-	s.HandleFunc("/{id:[0-9]+}", handlers.DriverHandler).Methods(http.MethodGet)
+	s.HandleFunc("/{id:[0-9]+}", handlers.DriverGetByIDrHandler).Methods(http.MethodGet)
 	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
