@@ -21,6 +21,7 @@ func InitRouter() *mux.Router {
 
 	s := r.PathPrefix(pathPref + "/seller").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetSellerByIDHandler).Methods(http.MethodGet)
+	s.HandleFunc("/code/{code}", handlers.GetSellerByCodeHandler).Methods(http.MethodGet)
 	s.HandleFunc("", handlers.SaveSellerHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/customer").Subrouter()

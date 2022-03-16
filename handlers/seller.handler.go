@@ -38,7 +38,7 @@ func SaveSellerHandler(w http.ResponseWriter, r *http.Request) {
 func GetSellerByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		var res dto.ContentResponse
 		res.ErrCode = constanta.ERR_CODE_04
@@ -47,6 +47,24 @@ func GetSellerByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := sellerService.GetSellerByID(id)
+	result, _ := json.Marshal(resp)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(result)
+}
+
+func GetSellerByCodeHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	kode := vars["code"]
+	if kode == "" {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak boleh kosong"
+		return
+	}
+	resp := sellerService.GetSellerByKode(kode)
 	result, _ := json.Marshal(resp)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)

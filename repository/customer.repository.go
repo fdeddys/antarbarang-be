@@ -1,9 +1,6 @@
 package repository
 
 import (
-	"context"
-	"fmt"
-
 	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/enumerate"
@@ -12,7 +9,8 @@ import (
 )
 
 func FindCustomerById(id int) (model.Customer, error) {
-	db := database.GetConn
+	db := database.GetConn()
+	defer db.Close()
 
 	sqlStatement := `
 		SELECT id, nama, hp, alamat, coordinate, status, last_update_by, last_update
@@ -20,8 +18,8 @@ func FindCustomerById(id int) (model.Customer, error) {
 		WHERE id = $1;
 	`
 	var customer model.Customer
-	err := db().
-		QueryRow(context.Background(), sqlStatement, id).
+	err := db.
+		QueryRow(sqlStatement, id).
 		Scan(&customer)
 	if err != nil {
 		return customer, err
@@ -34,7 +32,8 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 
 	lastInsertId := 0
 
-	db := database.GetConn
+	db := database.GetConn()
+	defer db.Close()
 
 	sqlStatement := `
 		INSERT INTO public.customers
@@ -42,8 +41,8 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 
-	err := db().
-		QueryRow(context.Background(),
+	err := db.
+		QueryRow(
 			sqlStatement, customer.Nama, customer.Hp, customer.Address, customer.Coordinate, enumerate.ACTIVE, dto.CurrUser, util.GetCurrTimeUnix()).
 		Scan(&lastInsertId)
 
@@ -59,7 +58,7 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 	customers := []model.Customer{}
 	db := database.GetConn
 
-	rows, err := db().Query(context.Background(), `
+	rows, err := db().Query(`
 		SELECT id, nama, hp, alamat, coordinate, status, last_update_by, last_update
 		FROM customers	
 		WHERE nama like '%$1%' `, nama)
@@ -69,19 +68,19 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 	}
 
 	for rows.Next() {
-		data, err := rows.Values()
-		if err != nil {
-			fmt.Println("Gagal ambil data dari query")
-		}
+
 		var customer model.Customer
-		// convert DB types to Go types
-		customer.Nama = data[0].(string)
-		customer.Hp = data[1].(string)
-		customer.Address = data[2].(string)
-		customer.Coordinate = data[3].(string)
-		customer.Status = data[4].(enumerate.StatusRecord)
-		customer.LastUpdateBy = data[5].(string)
-		customer.LastUpdate = data[6].(int64)
+		err = rows.Scan(
+			customer.Nama,
+			customer.Hp,
+			customer.Address,
+			customer.Coordinate,
+			customer.Status,
+			customer.LastUpdateBy,
+			customer.LastUpdate)
+		if err != nil {
+			return []model.Customer{}, err
+		}
 
 		customers = append(customers, customer)
 	}

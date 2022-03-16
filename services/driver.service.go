@@ -1,12 +1,7 @@
 package services
 
 import (
-	"context"
-	"fmt"
-	"time"
-
 	"com.ddabadi.antarbarang/constanta"
-	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/model"
 	"com.ddabadi.antarbarang/repository"
@@ -21,21 +16,7 @@ func (d *DriverService) CreateDriver(driver model.Driver) dto.ContentResponse {
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	currTime := time.Now().Unix()
-	db := database.GetConn
-
-	sqlStatement := `
-		INSERT INTO public.drivers
-		(nama, hp, alamat, photo, status, last_update_by, last_update)
-		VALUES ($1::text, $2::text, $3::text, $4::text, 0, $5, $6::bigint)
-		RETURNING id`
-
-	fmt.Println("name", driver.Name, "addr", driver.Address, "pict", driver.Picture, "status", driver.Status, "curtime", currTime, "cur user", dto.CurrUser)
-
-	lastInsertId := 0
-	err := db().
-		QueryRow(context.Background(), sqlStatement, driver.Name, driver.Address, driver.Picture, driver.Status, dto.CurrUser, currTime).
-		Scan(&lastInsertId)
+	lastInsertId, err := repository.SaveDriver(driver)
 
 	if err != nil {
 		result.Contents = err.Error()

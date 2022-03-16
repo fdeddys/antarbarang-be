@@ -10,9 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"com.ddabadi.antarbarang/router"
-
 	_ "com.ddabadi.antarbarang/database"
+	"com.ddabadi.antarbarang/router"
 )
 
 func main() {

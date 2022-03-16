@@ -3,8 +3,8 @@ package enumerate
 type StatusRecord int
 
 const (
-	ACTIVE StatusRecord = iota
-	NONACTIVE
+	NONACTIVE StatusRecord = iota
+	ACTIVE
 )
 
 func (s StatusRecord) String() string {

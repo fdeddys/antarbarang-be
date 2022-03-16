@@ -27,18 +27,34 @@ func (d *SellerService) CreateSeller(seller model.Seller) dto.ContentResponse {
 	return result
 }
 
-func (d *SellerService) GetSellerByID(id int) dto.ContentResponse {
+func (d *SellerService) GetSellerByID(id int64) dto.ContentResponse {
 	var result dto.ContentResponse
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	driver, err := repository.FindDriverById(id)
+	seller, err := repository.FindSellerById(id)
 	if err != nil {
 		result.ErrCode = constanta.ERR_CODE_11
 		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
 		result.Contents = err.Error()
 		return result
 	}
-	result.Contents = driver
+	result.Contents = seller
+	return result
+}
+
+func (d *SellerService) GetSellerByKode(kode string) dto.ContentResponse {
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	seller, err := repository.FindSellerByCode(kode)
+	if err != nil {
+		result.ErrCode = constanta.ERR_CODE_11
+		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
+		result.Contents = err.Error()
+		return result
+	}
+	result.Contents = seller
 	return result
 }

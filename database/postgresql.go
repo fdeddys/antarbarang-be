@@ -1,15 +1,11 @@
 package database
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
 
-	// "github.com/sirupsen/logrus"
-	// "github.com/jackc/pgx/v4/log/logrusadapter"
-
-	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/lib/pq"
 )
 
@@ -23,7 +19,7 @@ import (
 
 var (
 	// conn     *pgx.Conn
-	db       *pgxpool.Pool
+	db       *sql.DB
 	host     string
 	port     int32
 	user     string
@@ -49,46 +45,27 @@ func openDatabase() error {
 	}
 
 	dbUrl := fmt.Sprintf("postgres://%v:%v@%v:%v/%v", user, password, host, port, dbname)
-	// var err error
-	// conn, err = pgx.Connect(context.Background(), dbUrl)
 
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-	// 	return err
-	// }
-	// logger := log15adapter.NewLogger(log.New("module", "pgx"))
-
-	poolConfig, err := pgxpool.ParseConfig(dbUrl)
+	var err error
+	db, err = sql.Open("postgres", dbUrl)
 	if err != nil {
-		// log.Crit("Unable to parse DATABASE_URL", "error", err)
 		fmt.Println("Unable to parse DATABASE_URL", "error", err)
 		os.Exit(1)
 	}
-	// logrusLogger := &logrus.Logger{
-	// 	Out:          os.Stderr,
-	// 	Formatter:    new(logrus.JSONFormatter),
-	// 	Hooks:        make(logrus.LevelHooks),
-	// 	Level:        logrus.InfoLevel,
-	// 	ExitFunc:     os.Exit,
-	// 	ReportCaller: false,
-	//    }
-	// poolConfig.ConnConfig.Logger = logrusLogger.Log(logrusLogger)
 
-	// poolConfig.ConnConfig.Logger = logger
-	poolConfig.ConnConfig.PreferSimpleProtocol = true
-
-	db, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
+	err = db.Ping()
 	if err != nil {
-		// log.Crit("Unable to create connection pool", "error", err)
-		os.Exit(1)
+		fmt.Println("Error ping database !", err.Error())
+		return nil
 	}
+
 	fmt.Println("Database Successfully connected !")
 	return nil
 }
 
-func GetConn() *pgxpool.Pool {
-	if err := db.Ping(context.Background()); err != nil {
-		fmt.Println("Error ping database !")
+func GetConn() *sql.DB {
+	if err := db.Ping(); err != nil {
+		fmt.Println("Error ping database !", err.Error())
 	}
 	return db
 }
@@ -98,4 +75,48 @@ func GetConn() *pgxpool.Pool {
 // 		fmt.Println("Error ping database !")
 // 	}
 // 	return conn
+// }
+
+// func openDatabasex() error {
+// 	port, errPort := strconv.ParseInt(os.Getenv("DATABASE_PORT"), 10, 32)
+// 	if errPort != nil {
+// 		port = 5432
+// 	}
+
+// 	dbUrl := fmt.Sprintf("postgres://%v:%v@%v:%v/%v", user, password, host, port, dbname)
+// 	// var err error
+// 	// conn, err = pgx.Connect(context.Background(), dbUrl)
+
+// 	// if err != nil {
+// 	// 	fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
+// 	// 	return err
+// 	// }
+// 	// logger := log15adapter.NewLogger(log.New("module", "pgx"))
+
+// 	poolConfig, err := pgxpool.ParseConfig(dbUrl)
+// 	if err != nil {
+// 		// log.Crit("Unable to parse DATABASE_URL", "error", err)
+// 		fmt.Println("Unable to parse DATABASE_URL", "error", err)
+// 		os.Exit(1)
+// 	}
+// 	// logrusLogger := &logrus.Logger{
+// 	// 	Out:          os.Stderr,
+// 	// 	Formatter:    new(logrus.JSONFormatter),
+// 	// 	Hooks:        make(logrus.LevelHooks),
+// 	// 	Level:        logrus.InfoLevel,
+// 	// 	ExitFunc:     os.Exit,
+// 	// 	ReportCaller: false,
+// 	//    }
+// 	// poolConfig.ConnConfig.Logger = logrusLogger.Log(logrusLogger)
+
+// 	// poolConfig.ConnConfig.Logger = logger
+// 	poolConfig.ConnConfig.PreferSimpleProtocol = true
+
+// 	// db, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
+// 	// if err != nil {
+// 	// 	// log.Crit("Unable to create connection pool", "error", err)
+// 	// 	os.Exit(1)
+// 	// }
+// 	fmt.Println("Database Successfully connected !")
+// 	return nil
 // }
