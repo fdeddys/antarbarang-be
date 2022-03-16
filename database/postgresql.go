@@ -76,6 +76,7 @@ func openDatabase() error {
 
 	// poolConfig.ConnConfig.Logger = logger
 	poolConfig.ConnConfig.PreferSimpleProtocol = true
+
 	db, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {
 		// log.Crit("Unable to create connection pool", "error", err)

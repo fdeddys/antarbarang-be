@@ -20,7 +20,6 @@ const (
 	ERR_CODE_11_FAILED_GET_DATA = "Failed get data to database"
 )
 
-// const (
-// 	ACTIVE    = 1
-// 	NONACTIVE = 2
-// )
+const (
+	PREFIX_SELLER = "S"
+)

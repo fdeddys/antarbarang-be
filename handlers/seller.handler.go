@@ -14,13 +14,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var driverService = new(services.DriverService)
+var sellerService = new(services.SellerService)
 
-func DriverCreateHandler(w http.ResponseWriter, r *http.Request) {
-	var driver model.Driver
+func SaveSellerHandler(w http.ResponseWriter, r *http.Request) {
+	var seller model.Seller
 
 	dataBodyReq, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(dataBodyReq, &driver)
+	err := json.Unmarshal(dataBodyReq, &seller)
 
 	if err != nil {
 		fmt.Println("Error Struct", err.Error())
@@ -28,14 +28,14 @@ func DriverCreateHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Error struct "))
 		return
 	}
-	res := driverService.CreateDriver(driver)
+	res := sellerService.CreateSeller(seller)
 	result, _ := json.Marshal(res)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }
 
-func DriverGetByIDrHandler(w http.ResponseWriter, r *http.Request) {
+func GetSellerByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -46,7 +46,7 @@ func DriverGetByIDrHandler(w http.ResponseWriter, r *http.Request) {
 		res.Contents = err.Error()
 		return
 	}
-	resp := driverService.GetDriverByID(id)
+	resp := sellerService.GetSellerByID(id)
 	result, _ := json.Marshal(resp)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)

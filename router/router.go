@@ -19,8 +19,12 @@ func InitRouter() *mux.Router {
 	r.Use(mux.CORSMethodMiddleware(r))
 	pathPref := "/api"
 
-	s := r.PathPrefix(pathPref + "/customer").Subrouter()
-	s.HandleFunc("/{id:[0-9]+}", handlers.CustomerHandler).Methods(http.MethodGet)
+	s := r.PathPrefix(pathPref + "/seller").Subrouter()
+	s.HandleFunc("/{id:[0-9]+}", handlers.GetSellerByIDHandler).Methods(http.MethodGet)
+	s.HandleFunc("", handlers.SaveSellerHandler).Methods(http.MethodPost)
+
+	s = r.PathPrefix(pathPref + "/customer").Subrouter()
+	s.HandleFunc("/{id:[0-9]+}", handlers.GetCustomerByIDHandler).Methods(http.MethodGet)
 	s.HandleFunc("/", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()

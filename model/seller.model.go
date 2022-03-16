@@ -1,13 +1,17 @@
 package model
 
+import "com.ddabadi.antarbarang/enumerate"
+
 type Seller struct {
-	ID           int64  `json:"id" gorm:"column:id"`
-	Name         string `json:"name" gorm:"column:nama"`
-	Hp           string `json:"hp" gorm:"column:hp"`
-	Address      string `json:"address" gorm:"column:address"`
-	Status       int    `json:"status" gorm:"column:status"`
-	LastUpdateBy string `json:"last_update_by" gorm:"column:last_update_by"`
-	LastUpdate   int64  `json:"last_update" gorm:"column:last_update"`
+	ID           int64                  `json:"id" gorm:"column:id"`
+	Kode         string                 `json:"kode" gorm:"column:kode"`
+	Password     string                 `json:"password" gorm:"column:password"`
+	Nama         string                 `json:"nama" gorm:"column:nama"`
+	Hp           string                 `json:"hp" gorm:"column:hp"`
+	Alamat       string                 `json:"alamat" gorm:"column:alamat"`
+	Status       enumerate.StatusRecord `json:"status" gorm:"column:status"`
+	LastUpdateBy string                 `json:"last_update_by" gorm:"column:last_update_by"`
+	LastUpdate   int64                  `json:"last_update" gorm:"column:last_update"`
 }
 
 // TableName ...

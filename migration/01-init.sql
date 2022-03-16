@@ -3,6 +3,8 @@ CREATE TABLE sellers(
     id bigserial NOT NULL,
     nama TEXT NOT NULL,
     hp varchar(30) NULL,
+    kode varchar(6) NULL,
+    password varchar(25) NULL,
     alamat text null,
     status int default 0,
     last_update_by varchar(255) NULL,
@@ -73,3 +75,10 @@ create table transaction_pickup (
 );
 
 
+CREATE TABLE uruts(
+    id bigserial NOT NULL,
+    prefix TEXT NOT NULL,
+    keterangan varchar(30) NULL,
+    urut bigint  default 0,
+    PRIMARY KEY (id)
+);

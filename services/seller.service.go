@@ -7,16 +7,16 @@ import (
 	"com.ddabadi.antarbarang/repository"
 )
 
-type CustomerService struct {
+type SellerService struct {
 }
 
-func (c *CustomerService) CreateCustomer(driver model.Customer) dto.ContentResponse {
+func (d *SellerService) CreateSeller(seller model.Seller) dto.ContentResponse {
 
 	var result dto.ContentResponse
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	lastInsertId, err := repository.SaveCustomer(driver)
+	lastInsertId, err := repository.SaveSeller(seller)
 	if err != nil {
 		result.Contents = err.Error()
 		result.ErrCode = constanta.ERR_CODE_10
@@ -27,38 +27,18 @@ func (c *CustomerService) CreateCustomer(driver model.Customer) dto.ContentRespo
 	return result
 }
 
-func (c *CustomerService) GetCustomerByID(custId int64) dto.ContentResponse {
-
+func (d *SellerService) GetSellerByID(id int) dto.ContentResponse {
 	var result dto.ContentResponse
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	customer, err := repository.FindCustomerById(int(custId))
+	driver, err := repository.FindDriverById(id)
 	if err != nil {
-		result.Contents = err.Error()
 		result.ErrCode = constanta.ERR_CODE_11
 		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
-		return result
-	}
-	result.Contents = customer
-	return result
-
-}
-
-func (c *CustomerService) GetCustomerByNama(nama string) dto.ContentResponse {
-
-	var result dto.ContentResponse
-	result.ErrCode = constanta.ERR_CODE_00
-	result.ErrDesc = constanta.ERR_CODE_00_MSG
-
-	customers, err := repository.FindCustomerByNama(nama)
-	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
 		return result
 	}
-	result.Contents = customers
+	result.Contents = driver
 	return result
-
 }
