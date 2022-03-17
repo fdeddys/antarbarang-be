@@ -43,3 +43,19 @@ func (d *DriverService) GetDriverByID(id int) dto.ContentResponse {
 	result.Contents = driver
 	return result
 }
+
+func (d *DriverService) GetDriverByKode(kode string) dto.ContentResponse {
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	seller, err := repository.FindDriverByCode(kode)
+	if err != nil {
+		result.ErrCode = constanta.ERR_CODE_11
+		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
+		result.Contents = err.Error()
+		return result
+	}
+	result.Contents = seller
+	return result
+}

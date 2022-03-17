@@ -1,18 +1,21 @@
 package model
 
+import "com.ddabadi.antarbarang/enumerate"
+
 type Driver struct {
-	ID           int64  `json:"id" gorm:"column:id"`
-	Picture      string `json:"picture" gorm:"column:pict"`
-	Address      string `json:"address" gorm:"column:address"`
-	Hp           string `json:"hp" gorm:"column:hp"`
-	Name         string `json:"name" gorm:"column:name"`
-	Status       int    `json:"status" gorm:"column:status"`
-	LastUpdateBy string `json:"last_update_by" gorm:"column:last_update_by"`
-	LastUpdate   int64  `json:"last_update" gorm:"column:last_update"`
-	Code         string `json:"code" gorm:"column:code"`
+	ID            int64                  `json:"id"`
+	Kode          string                 `json:"kode"`
+	Photo         string                 `json:"photo"`
+	Alamat        string                 `json:"alamat"`
+	Hp            string                 `json:"hp"`
+	Nama          string                 `json:"nama"`
+	Status        enumerate.StatusRecord `json:"status"`
+	LastUpdateBy  string                 `json:"last_update_by"`
+	LastUpdate    int64                  `json:"last_update"`
+	LastUpdateStr string                 `json:"last_update_str"`
 }
 
-// TableName ...
-func (t *Driver) TableName() string {
-	return "public.driver"
-}
+// // TableName ...
+// func (t *Driver) TableName() string {
+// 	return "public.drivers"
+// }

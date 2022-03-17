@@ -1,8 +1,12 @@
 package repository
 
 import (
+	"errors"
+
+	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
+	"com.ddabadi.antarbarang/enumerate"
 	"com.ddabadi.antarbarang/model"
 	"com.ddabadi.antarbarang/util"
 )
@@ -18,7 +22,17 @@ func FindDriverById(id int) (model.Driver, error) {
 	var driver model.Driver
 	err := db().
 		QueryRow(sqlStatement, id).
-		Scan(&driver)
+		Scan(
+			&driver.ID,
+			&driver.Nama,
+			&driver.Hp,
+			&driver.Alamat,
+			&driver.Photo,
+			&driver.Status,
+			&driver.LastUpdateBy,
+			&driver.LastUpdate,
+		)
+	driver.LastUpdateStr = util.DateUnixToString(driver.LastUpdate)
 	if err != nil {
 		return driver, err
 	}
@@ -30,21 +44,57 @@ func SaveDriver(driver model.Driver) (int64, error) {
 
 	currTime := util.GetCurrTimeUnix()
 	db := database.GetConn()
-	defer db.Close()
+	lastInsertId := int64(0)
+
+	kode, errKode := generateKode(constanta.PREFIX_DRIVER)
+	driver.Kode = kode
+	driver.Status = enumerate.ACTIVE
+	if errKode != nil {
+		return lastInsertId, errors.New("Cannot generate prefix cause : " + errKode.Error())
+	}
 
 	sqlStatement := `
 		INSERT INTO public.drivers
-		(nama, hp, alamat, photo, status, last_update_by, last_update)
-		VALUES ($1::text, $2::text, $3::text, $4::text, 0, $5, $6::bigint)
+			(nama, kode, hp, alamat, photo, status, last_update_by, last_update)
+		VALUES ($1::text, $2::text, $3::text, $4::text, $5, $6, $7, $8)
 		RETURNING id`
 
-	lastInsertId := 0
 	err := db.QueryRow(
-		sqlStatement, driver.Name, driver.Address, driver.Picture, driver.Status, dto.CurrUser, currTime).
+		sqlStatement,
+		driver.Nama, driver.Kode, driver.Hp, driver.Alamat, driver.Photo, driver.Status, dto.CurrUser, currTime).
 		Scan(&lastInsertId)
 	if err != nil {
-		return int64(lastInsertId), err
+		return lastInsertId, err
 	}
-	return int64(lastInsertId), nil
+	return lastInsertId, nil
+}
 
+func FindDriverByCode(kode string) (model.Driver, error) {
+	db := database.GetConn()
+	// defer db.Close()
+
+	sqlStatement := `
+		SELECT id, nama, kode, hp, alamat, photo, status, last_update_by, last_update
+		FROM public.drivers	
+		WHERE kode = $1;
+	`
+	var driver model.Driver
+	err := db.
+		QueryRow(sqlStatement, kode).
+		Scan(
+			&driver.ID,
+			&driver.Nama,
+			&driver.Kode,
+			&driver.Hp,
+			&driver.Alamat,
+			&driver.Photo,
+			&driver.Status,
+			&driver.LastUpdateBy,
+			&driver.LastUpdate,
+		)
+	driver.LastUpdateStr = util.DateUnixToString(driver.LastUpdate)
+	if err != nil {
+		return driver, err
+	}
+	return driver, nil
 }

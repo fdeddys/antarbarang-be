@@ -14,6 +14,7 @@ CREATE TABLE sellers(
 
 create table customers ( 
     id bigserial NOT NULL,
+    seller_id bigserial,
     nama TEXT NOT NULL,
     hp varchar(30) NULL,
     alamat text null,
@@ -27,6 +28,7 @@ create table customers (
 create table drivers (  
     id bigserial NOT NULL,
     nama TEXT NOT NULL,
+    kode varchar(6) NULL,
     hp varchar(30) NULL,
     alamat text null,
     photo text null,

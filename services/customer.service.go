@@ -62,3 +62,21 @@ func (c *CustomerService) GetCustomerByNama(nama string) dto.ContentResponse {
 	return result
 
 }
+
+func (c *CustomerService) GetCustomerBySellerId(sellerId int64) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	customers, err := repository.FindCustomerBySellerId(sellerId)
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = customers
+	return result
+
+}

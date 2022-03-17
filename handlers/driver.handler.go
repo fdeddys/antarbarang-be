@@ -35,7 +35,7 @@ func DriverCreateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(result))
 }
 
-func DriverGetByIDrHandler(w http.ResponseWriter, r *http.Request) {
+func GetDriverByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -47,6 +47,24 @@ func DriverGetByIDrHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := driverService.GetDriverByID(id)
+	result, _ := json.Marshal(resp)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(result)
+}
+
+func GetDriverByCodeHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	kode := vars["code"]
+	if kode == "" {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak boleh kosong"
+		return
+	}
+	resp := driverService.GetDriverByKode(kode)
 	result, _ := json.Marshal(resp)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)
