@@ -42,6 +42,7 @@ create table admins (
     id bigserial NOT NULL,
     kode varchar(6) NULL,
     nama TEXT NOT NULL,
+    password varchar(20) NULL,
     status int default 0,
     last_update_by varchar(255) NULL,
 	last_update bigint NULL,

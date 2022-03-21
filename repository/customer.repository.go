@@ -12,7 +12,7 @@ import (
 
 func FindCustomerById(id int) (model.Customer, error) {
 	db := database.GetConn()
-	defer db.Close()
+	// defer db.Close()
 
 	sqlStatement := `
 		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
@@ -46,7 +46,7 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 	lastInsertId := int64(0)
 
 	db := database.GetConn()
-	defer db.Close()
+	// defer db.Close()
 
 	sqlStatement := `
 		INSERT INTO public.customers

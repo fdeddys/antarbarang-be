@@ -35,6 +35,12 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/code/{code}", handlers.GetDriverByCodeHandler).Methods(http.MethodGet)
 	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 
+	s = r.PathPrefix(pathPref + "/admin").Subrouter()
+	s.HandleFunc("/{id:[0-9]+}", handlers.GetAdminByIdHandler).Methods(http.MethodGet)
+	s.HandleFunc("/code/{code}", handlers.GetAdminByCodeHandler).Methods(http.MethodGet)
+	s.HandleFunc("", handlers.AdminCreateHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.AdminUpdateHandler).Methods(http.MethodPut)
+
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err == nil {

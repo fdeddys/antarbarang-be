@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
@@ -15,7 +16,7 @@ func FindAdminById(id int) (model.Admin, error) {
 	db := database.GetConn
 
 	sqlStatement := `
-		SELECT id, nama, status, last_update_by, last_update
+		SELECT id, nama, kode, status, last_update_by, last_update
 		FROM public.admins
 		WHERE id = $1;
 	`
@@ -25,6 +26,7 @@ func FindAdminById(id int) (model.Admin, error) {
 		Scan(
 			&admin.ID,
 			&admin.Nama,
+			&admin.Kode,
 			&admin.Status,
 			&admin.LastUpdateBy,
 			&admin.LastUpdate,
@@ -37,42 +39,45 @@ func FindAdminById(id int) (model.Admin, error) {
 
 }
 
-func SaveAdmin(admin model.Admin) (int64, error) {
+func SaveAdmin(admin model.Admin) (model.Admin, error) {
 
 	currTime := util.GetCurrTimeUnix()
 	db := database.GetConn()
 	lastInsertId := int64(0)
 
+	fmt.Println("Start generate kode")
 	kode, errKode := generateKode(constanta.PREFIX_ADMIN)
 	admin.Kode = kode
 	admin.Status = enumerate.ACTIVE
 	if errKode != nil {
-		return lastInsertId, errors.New("Cannot generate prefix cause : " + errKode.Error())
+		return admin, errors.New("Cannot generate prefix cause : " + errKode.Error())
 	}
+	admin.ID = lastInsertId
 
 	sqlStatement := `
 		INSERT INTO public.admins
-			(nama, kode, status, last_update_by, last_update)
-		VALUES ($1::text, $2, $3, $4, $5)
+			(nama, Password, kode, status, last_update_by, last_update)
+		VALUES ($1::text, $2, $3, $4, $5, $6)
 		RETURNING id`
 
+	fmt.Println("Start query row")
 	err := db.QueryRow(
 		sqlStatement,
-		admin.Nama, admin.Kode, admin.Status, dto.CurrUser, currTime).
+		admin.Nama, admin.Password, admin.Kode, admin.Status, dto.CurrUser, currTime).
 		Scan(&lastInsertId)
 	if err != nil {
-		return lastInsertId, err
+		return admin, err
 	}
-	return lastInsertId, nil
+	return admin, nil
 }
 
-func FindAAdminByCode(kode string) (model.Admin, error) {
+func FindAdminByCode(kode string) (model.Admin, error) {
 	db := database.GetConn()
 	// defer db.Close()
 
 	sqlStatement := `
 		SELECT id, kode, nama, status, last_update_by, last_update
-		FROM public.admins;		
+		FROM public.admins	
 		WHERE kode = $1;
 	`
 	var admin model.Admin
@@ -91,4 +96,26 @@ func FindAAdminByCode(kode string) (model.Admin, error) {
 		return admin, err
 	}
 	return admin, nil
+}
+
+func UpdateAdmin(admin model.Admin) (error, string) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.admins
+		SET nama=$1, last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		admin.Nama, dto.CurrUser, currTime, admin.ID)
+
+	if err != nil {
+		return err, ""
+	}
+	totalData, _ := res.RowsAffected()
+	return nil, fmt.Sprintf("update data success : %v record's!", totalData)
 }
