@@ -40,6 +40,7 @@ create table drivers (
 
 create table admins ( 
     id bigserial NOT NULL,
+    kode varchar(6) NULL,
     nama TEXT NOT NULL,
     status int default 0,
     last_update_by varchar(255) NULL,

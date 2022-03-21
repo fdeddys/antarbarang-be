@@ -23,4 +23,5 @@ const (
 const (
 	PREFIX_SELLER = "S"
 	PREFIX_DRIVER = "D"
+	PREFIX_ADMIN  = "A"
 )

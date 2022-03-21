@@ -1,11 +1,16 @@
 package model
 
+import "com.ddabadi.antarbarang/enumerate"
+
 type Admin struct {
-	ID           int64  `json:"id" gorm:"column:id"`
-	Nama         string `json:"nama" gorm:"column:nama"`
-	Status       int    `json:"status" gorm:"column:status"`
-	LastUpdateBy string `json:"last_update_by" gorm:"column:last_update_by"`
-	LastUpdate   int64  `json:"last_update" gorm:"column:last_update"`
+	ID            int64                  `json:"id"`
+	Kode          string                 `json:"kode"`
+	Nama          string                 `json:"nama"`
+	Password      string                 `json:"-"`
+	Status        enumerate.StatusRecord `json:"status"`
+	LastUpdateBy  string                 `json:"last_update_by"`
+	LastUpdate    int64                  `json:"last_update"`
+	LastUpdateStr string                 `json:"last_update_str"`
 }
 
 // TableName ...
