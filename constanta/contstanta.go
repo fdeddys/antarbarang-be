@@ -21,6 +21,11 @@ const (
 )
 
 const (
+	ERR_CODE_20              = "20"
+	ERR_CODE_20_LOGIN_FAILED = "Login Failed"
+)
+
+const (
 	PREFIX_SELLER = "S"
 	PREFIX_DRIVER = "D"
 	PREFIX_ADMIN  = "A"

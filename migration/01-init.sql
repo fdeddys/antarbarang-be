@@ -14,7 +14,7 @@ CREATE TABLE sellers(
 
 create table customers ( 
     id bigserial NOT NULL,
-    seller_id bigserial,
+    seller_id bigint ,
     nama TEXT NOT NULL,
     hp varchar(30) NULL,
     alamat text null,

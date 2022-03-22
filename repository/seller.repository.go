@@ -96,3 +96,26 @@ func SaveSeller(seller model.Seller) (model.Seller, error) {
 	seller.ID = int64(lastInsertId)
 	return seller, nil
 }
+
+func LoginSellerByCode(kode string) (model.Seller, error) {
+	db := database.GetConn()
+	// defer db.Close()
+
+	sqlStatement := `
+		SELECT nama, password, status
+		FROM public.sellers
+		WHERE kode = $1; 
+	`
+	var seller model.Seller
+	err := db.
+		QueryRow(sqlStatement, kode).
+		Scan(
+			&seller.Nama,
+			&seller.Password,
+			&seller.Status,
+		)
+	if err != nil {
+		return seller, err
+	}
+	return seller, nil
+}

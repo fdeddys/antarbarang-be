@@ -43,8 +43,8 @@ func openDatabase() error {
 	if errPort != nil {
 		port = 5432
 	}
-
-	dbUrl := fmt.Sprintf("postgres://%v:%v@%v:%v/%v", user, password, host, port, dbname)
+	fmt.Println("User : ", user, " Password : ", password, " host :", host, "port : ", port, "dbname ", dbname)
+	dbUrl := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=disable", user, password, host, port, dbname)
 
 	var err error
 	db, err = sql.Open("postgres", dbUrl)
