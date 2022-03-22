@@ -7,6 +7,7 @@ type Driver struct {
 	Kode          string                 `json:"kode"`
 	Photo         string                 `json:"photo"`
 	Alamat        string                 `json:"alamat"`
+	Password      string                 `json:"password"`
 	Hp            string                 `json:"hp"`
 	Nama          string                 `json:"nama"`
 	Status        enumerate.StatusRecord `json:"status"`

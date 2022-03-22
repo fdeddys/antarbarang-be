@@ -89,3 +89,24 @@ func AdminUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }
+
+func LoginAdminHandler(w http.ResponseWriter, r *http.Request) {
+
+	var loginRequest dto.LoginRequestDto
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &loginRequest)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct "))
+		return
+	}
+
+	resp := adminService.LoginAdminByKode(loginRequest.Kode, loginRequest.Password)
+	result, _ := json.Marshal(resp)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(result)
+}

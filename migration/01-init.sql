@@ -29,6 +29,7 @@ create table drivers (
     id bigserial NOT NULL,
     nama TEXT NOT NULL,
     kode varchar(6) NULL,
+    password varchar(25) NULL,
     hp varchar(30) NULL,
     alamat text null,
     photo text null,

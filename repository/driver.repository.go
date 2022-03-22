@@ -98,3 +98,25 @@ func FindDriverByCode(kode string) (model.Driver, error) {
 	}
 	return driver, nil
 }
+
+func LoginDriverByCode(kode string) (model.Driver, error) {
+	db := database.GetConn()
+
+	sqlStatement := `
+		SELECT nama, password, status
+		FROM public.drivers
+		WHERE kode = $1; 
+	`
+	var driver model.Driver
+	err := db.
+		QueryRow(sqlStatement, kode).
+		Scan(
+			&driver.Nama,
+			&driver.Password,
+			&driver.Status,
+		)
+	if err != nil {
+		return driver, err
+	}
+	return driver, nil
+}

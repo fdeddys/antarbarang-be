@@ -119,3 +119,25 @@ func UpdateAdmin(admin model.Admin) (error, string) {
 	totalData, _ := res.RowsAffected()
 	return nil, fmt.Sprintf("update data success : %v record's!", totalData)
 }
+
+func LoginAdminByCode(kode string) (model.Admin, error) {
+	db := database.GetConn()
+
+	sqlStatement := `
+		SELECT nama, password, status
+		FROM public.admins
+		WHERE kode = $1; 
+	`
+	var admin model.Admin
+	err := db.
+		QueryRow(sqlStatement, kode).
+		Scan(
+			&admin.Nama,
+			&admin.Password,
+			&admin.Status,
+		)
+	if err != nil {
+		return admin, err
+	}
+	return admin, nil
+}

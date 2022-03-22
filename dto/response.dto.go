@@ -7,3 +7,8 @@ type ContentResponse struct {
 	ErrDesc  string      `json:"errDesc"`
 	Contents interface{} `json:"contents"`
 }
+
+type LoginRequestDto struct {
+	Kode     string `json:"kode"`
+	Password string `json:"password"`
+}
