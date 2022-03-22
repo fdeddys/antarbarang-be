@@ -24,6 +24,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/code/{code}", handlers.GetSellerByCodeHandler).Methods(http.MethodGet)
 	s.HandleFunc("/login", handlers.LoginSellerHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.SaveSellerHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.SellerUpdateHandler).Methods(http.MethodPut)
 
 	s = r.PathPrefix(pathPref + "/customer").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetCustomerByIDHandler).Methods(http.MethodGet)
@@ -36,6 +37,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/code/{code}", handlers.GetDriverByCodeHandler).Methods(http.MethodGet)
 	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("/login", handlers.LoginDriverHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.DriverUpdateHandler).Methods(http.MethodPut)
 
 	s = r.PathPrefix(pathPref + "/admin").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetAdminByIdHandler).Methods(http.MethodGet)

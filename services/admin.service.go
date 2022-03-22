@@ -67,7 +67,7 @@ func (a *AdminService) UpdateAdmin(admin model.Admin) dto.ContentResponse {
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	err, msg := repository.UpdateAdmin(admin)
+	msg, err := repository.UpdateAdmin(admin)
 
 	if err != nil {
 		result.Contents = err.Error()

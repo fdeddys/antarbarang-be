@@ -91,3 +91,22 @@ func LoginSellerHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(result)
 }
+
+func SellerUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var seller model.Seller
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &seller)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+	res := sellerService.UpdateSeller(seller)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

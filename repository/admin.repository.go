@@ -98,7 +98,7 @@ func FindAdminByCode(kode string) (model.Admin, error) {
 	return admin, nil
 }
 
-func UpdateAdmin(admin model.Admin) (error, string) {
+func UpdateAdmin(admin model.Admin) (string, error) {
 
 	currTime := util.GetCurrTimeUnix()
 	db := database.GetConn()
@@ -114,10 +114,10 @@ func UpdateAdmin(admin model.Admin) (error, string) {
 		admin.Nama, dto.CurrUser, currTime, admin.ID)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 	totalData, _ := res.RowsAffected()
-	return nil, fmt.Sprintf("update data success : %v record's!", totalData)
+	return fmt.Sprintf("update data success : %v record's!", totalData), nil
 }
 
 func LoginAdminByCode(kode string) (model.Admin, error) {

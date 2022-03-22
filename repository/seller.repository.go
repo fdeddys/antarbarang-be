@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
@@ -118,4 +119,26 @@ func LoginSellerByCode(kode string) (model.Seller, error) {
 		return seller, err
 	}
 	return seller, nil
+}
+
+func UpdateSeller(seller model.Seller) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.sellers
+		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
+		WHERE id=$6;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		seller.Nama, dto.CurrUser, currTime, seller.Hp, seller.Alamat, seller.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }

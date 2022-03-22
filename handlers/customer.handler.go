@@ -3,11 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/dto"
+	"com.ddabadi.antarbarang/model"
 	"com.ddabadi.antarbarang/services"
 	"github.com/gorilla/mux"
 )
@@ -79,4 +81,23 @@ func GetCustomerByNamaHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(result)
 	// fmt.Println(w, "catg : ", result)
+}
+
+func CustomerUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var customer model.Customer
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &customer)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+	res := customerService.UpdateCustomer(customer)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
 }

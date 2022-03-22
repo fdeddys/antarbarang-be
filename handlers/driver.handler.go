@@ -91,3 +91,22 @@ func LoginDriverHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(result)
 }
+
+func DriverUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var driver model.Driver
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &driver)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+	res := driverService.UpdateDriver(driver)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

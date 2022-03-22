@@ -80,3 +80,21 @@ func (c *CustomerService) GetCustomerBySellerId(sellerId int64) dto.ContentRespo
 	return result
 
 }
+
+func (c *CustomerService) UpdateCustomer(customer model.Customer) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	msg, err := repository.UpdateCustomer(customer)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}

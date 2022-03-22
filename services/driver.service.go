@@ -91,3 +91,21 @@ func (d *DriverService) LoginDriverByKode(kode, password string) dto.ContentResp
 	result.Contents = "Login success"
 	return result
 }
+
+func (d *DriverService) UpdateDriver(driver model.Driver) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	msg, err := repository.UpdateDriver(driver)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}

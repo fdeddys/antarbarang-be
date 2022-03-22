@@ -150,3 +150,25 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 	return customers, nil
 
 }
+
+func UpdateCustomer(customer model.Customer) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.customers
+		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
+		WHERE id=$6;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

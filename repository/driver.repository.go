@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
@@ -119,4 +120,26 @@ func LoginDriverByCode(kode string) (model.Driver, error) {
 		return driver, err
 	}
 	return driver, nil
+}
+
+func UpdateDriver(driver model.Driver) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.drivers
+		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
+		WHERE id=$6;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		driver.Nama, dto.CurrUser, currTime, driver.Hp, driver.Alamat, driver.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
