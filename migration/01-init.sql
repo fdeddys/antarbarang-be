@@ -50,22 +50,23 @@ create table admins (
     PRIMARY KEY (id)    
 );
 
-create table transaction_pickup ( 
+create table transaksi ( 
     id bigserial not null ,
     
-    jam_request_antar varchar(10),
+    transaksi_date bigint null,
     tanggal_request_antar bigint,
+    jam_request_antar varchar(10),
     nama_product TEXT NOT NULL,
     status int default 0,
     coordinate_tujuan text null,
    	keterangan text null,
    	
-    jam_ambil varchar(10),
-    tanggal_ambil bigint,
     photo_ambil text,
+    tanggal_ambil_str varchar(20),
+    tanggal_ambil bigint,
     
     photo_sampai text,
-   	jam_sampai varchar(10),
+   	tanggal_sampai_str varchar(20),
    	tanggal_sampai bigint,
    	
    	id_seller bigserial ,
