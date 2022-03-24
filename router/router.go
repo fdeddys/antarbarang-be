@@ -53,6 +53,12 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/login", handlers.LoginAdminHandler).Methods(http.MethodPost)
 	s.HandleFunc("/change-password", handlers.AdminChangePasswordHandler).Methods(http.MethodPost)
 
+	s = r.PathPrefix(pathPref + "/transaksi").Subrouter()
+	s.HandleFunc("/new", handlers.NewTransaksiHandler).Methods(http.MethodPost)
+	s.HandleFunc("/on-proccess", handlers.OnProccessHandler).Methods(http.MethodPost)
+	s.HandleFunc("/on-the-way", handlers.OnTheWayHandler).Methods(http.MethodPost)
+	s.HandleFunc("/done", handlers.DoneProcessHandler).Methods(http.MethodPost)
+
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err == nil {

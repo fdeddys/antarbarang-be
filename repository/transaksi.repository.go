@@ -10,7 +10,7 @@ import (
 	"com.ddabadi.antarbarang/util"
 )
 
-func NewTransaksi(transaksi model.Transaksi) (model.Transaksi, error) {
+func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	db := database.GetConn
 
 	var customer model.Customer
@@ -64,7 +64,63 @@ func NewTransaksi(transaksi model.Transaksi) (model.Transaksi, error) {
 	return transaksi, nil
 }
 
-func OnProccess(transaksi model.Transaksi) (model.Transaksi, error) {
+func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
+	db := database.GetConn
+
+	var customer model.Customer
+
+	errCustomer := db().
+		QueryRow(`
+				SELECT * 
+				FROM public.cutomers
+				WHERE id = $1
+			`,
+			transaksi.IdCustomer,
+		).Scan(&customer)
+	if errCustomer != nil {
+		return transaksi, errors.New("Error Table Customer : " + errCustomer.Error())
+	}
+
+	transaksi.CoordinateTujuan = customer.Coordinate
+	transaksi.TransaksiDate = util.GetCurrTimeUnix()
+	transaksi.LastUpdate = util.GetCurrTimeUnix()
+	transaksi.LastUpdateBy = dto.CurrUser
+
+	sqlStatement := `
+		UPDATE public.transaksi
+		SET
+			jam_request_antar = $1, 
+			tanggal_request_antar = $2, 
+			nama_product = $3, 
+			coordinate_tujuan = $4, 
+			keterangan = $5, 
+			id_customer = $6, 
+			last_update_by = $7, 
+			last_update = $8
+		WHERE id = $9
+		`
+
+	_, err := db().
+		Exec(
+			sqlStatement,
+			transaksi.JamRequestAntar,
+			transaksi.TanggalRequestAntar,
+			transaksi.NamaProduct,
+			transaksi.CoordinateTujuan,
+			transaksi.Keterangan,
+			transaksi.IdCustomer,
+			transaksi.LastUpdateBy,
+			transaksi.LastUpdate,
+		)
+
+	if err != nil {
+		return transaksi, err
+	}
+	return transaksi, nil
+
+}
+
+func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	db := database.GetConn()
 
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.ON_PROCCESS)
@@ -75,16 +131,18 @@ func OnProccess(transaksi model.Transaksi) (model.Transaksi, error) {
 		UPDATE public.transaksi
 		SET
 			id_driver = $1,
-			status = $2,
-			last_update_by = $3,
-			last_update = $4
+			id_admin = $2,
+			status = $3,
+			last_update_by = $4,
+			last_update = $5
 		WHERE	
-			id = $5
+			id = $6
 	`
 
 	_, err := db.Exec(
 		sqlStatement,
 		transaksi.IdDriver,
+		transaksi.IdAdmin,
 		transaksi.Status,
 		transaksi.LastUpdateBy,
 		transaksi.LastUpdate,
@@ -98,7 +156,40 @@ func OnProccess(transaksi model.Transaksi) (model.Transaksi, error) {
 	return transaksi, nil
 }
 
-func OnTheWay(transaksi model.Transaksi) (model.Transaksi, error) {
+func UpdateOnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
+	db := database.GetConn()
+
+	transaksi.LastUpdate = util.GetCurrTimeUnix()
+	transaksi.LastUpdateBy = dto.CurrUser
+
+	sqlStatement := `
+		UPDATE public.transaksi
+		SET
+			id_driver = $1,
+			id_admin = $2,
+			last_update_by = $3,
+			last_update = $4
+		WHERE	
+			id = $5
+	`
+
+	_, err := db.Exec(
+		sqlStatement,
+		transaksi.IdDriver,
+		transaksi.IdAdmin,
+		transaksi.LastUpdateBy,
+		transaksi.LastUpdate,
+		transaksi.ID,
+	)
+
+	if err != nil {
+		return transaksi, errors.New("Error transaksi : " + err.Error())
+	}
+
+	return transaksi, nil
+}
+
+func OnTheWayRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	db := database.GetConn()
 
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.ON_THE_WAY)
@@ -122,6 +213,43 @@ func OnTheWay(transaksi model.Transaksi) (model.Transaksi, error) {
 		sqlStatement,
 		transaksi.TanggalAmbil,
 		transaksi.PhotoAmbil,
+		transaksi.Status,
+		transaksi.LastUpdateBy,
+		transaksi.LastUpdate,
+		transaksi.ID,
+	)
+
+	if err != nil {
+		return transaksi, errors.New("Error transaksi : " + err.Error())
+	}
+
+	return transaksi, nil
+}
+
+func DoneRepo(transaksi model.Transaksi) (model.Transaksi, error) {
+	db := database.GetConn()
+
+	transaksi.Status = enumerate.StatusTransaksi(enumerate.DONE)
+	transaksi.LastUpdate = util.GetCurrTimeUnix()
+	transaksi.LastUpdateBy = dto.CurrUser
+	transaksi.TanggalSampai = util.GetCurrTimeUnix()
+
+	sqlStatement := `
+		UPDATE public.transaksi
+		SET
+			tanggal_sampai = $1,
+			photo_sampai = $2,
+			status = $3,
+			last_update_by = $4,
+			last_update = $5
+		WHERE	
+			id = $6
+	`
+
+	_, err := db.Exec(
+		sqlStatement,
+		transaksi.TanggalSampai,
+		transaksi.PhotoSampai,
 		transaksi.Status,
 		transaksi.LastUpdateBy,
 		transaksi.LastUpdate,
