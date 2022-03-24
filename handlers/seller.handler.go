@@ -110,3 +110,61 @@ func SellerUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }
+
+func SellerUpdateStatusHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	sellerId := vars["seller-id"]
+	statusActive := vars["active"]
+	var active bool
+
+	if sellerId == "" {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak boleh kosong"
+		return
+	}
+
+	seller, err := strconv.ParseInt(sellerId, 10, 64)
+	if err != nil {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak valid"
+		return
+	}
+
+	if statusActive == "1" {
+		active = true
+	} else {
+		active = false
+	}
+
+	res := sellerService.UpdateStatusSellerActive(seller, active)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}
+
+func SellerChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+
+	var seller model.Seller
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &seller)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+
+	res := sellerService.ChangePasswordSeller(seller)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

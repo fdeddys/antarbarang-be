@@ -172,3 +172,25 @@ func UpdateCustomer(customer model.Customer) (string, error) {
 	totalData, _ := res.RowsAffected()
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
+
+func UpdateStatusCustomer(idCustomer int64, statusCustomer interface{}) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.customers
+		SET status=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		statusCustomer, dto.CurrUser, currTime, idCustomer)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

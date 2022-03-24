@@ -110,3 +110,24 @@ func LoginAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(result)
 }
+
+func AdminChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+
+	var admin model.Admin
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &admin)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+
+	res := adminService.ChangePasswordAdmin(admin)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

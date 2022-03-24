@@ -101,3 +101,40 @@ func CustomerUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }
+
+func CustomerUpdateStatusHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	customerId := vars["customer-id"]
+	statusActive := vars["active"]
+	var active bool
+
+	if customerId == "" {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak boleh kosong"
+		return
+	}
+
+	seller, err := strconv.ParseInt(customerId, 10, 64)
+	if err != nil {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak valid"
+		return
+	}
+
+	if statusActive == "1" {
+		active = true
+	} else {
+		active = false
+	}
+
+	res := customerService.UpdateStatusCustomerActive(seller, active)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

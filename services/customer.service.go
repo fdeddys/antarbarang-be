@@ -3,6 +3,7 @@ package services
 import (
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/dto"
+	"com.ddabadi.antarbarang/enumerate"
 	"com.ddabadi.antarbarang/model"
 	"com.ddabadi.antarbarang/repository"
 )
@@ -88,6 +89,29 @@ func (c *CustomerService) UpdateCustomer(customer model.Customer) dto.ContentRes
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
 	msg, err := repository.UpdateCustomer(customer)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}
+
+func (c *CustomerService) UpdateStatusCustomerActive(customerId int64, active bool) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	statusDriver := enumerate.NONACTIVE
+	if active {
+		statusDriver = enumerate.ACTIVE
+	}
+
+	msg, err := repository.UpdateStatusCustomer(customerId, statusDriver)
 
 	if err != nil {
 		result.Contents = err.Error()

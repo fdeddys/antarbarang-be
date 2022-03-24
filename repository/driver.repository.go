@@ -143,3 +143,47 @@ func UpdateDriver(driver model.Driver) (string, error) {
 	totalData, _ := res.RowsAffected()
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
+
+func UpdateStatusDriver(idDriver int64, statusDriver interface{}) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.drivers
+		SET status=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		statusDriver, dto.CurrUser, currTime, idDriver)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}
+
+func ChangePasswordDriver(driver model.Driver) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.drivers
+		SET password=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		driver.Password, dto.CurrUser, currTime, driver.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

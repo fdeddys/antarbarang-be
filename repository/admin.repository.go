@@ -141,3 +141,25 @@ func LoginAdminByCode(kode string) (model.Admin, error) {
 	}
 	return admin, nil
 }
+
+func ChangePasswordAdmin(admin model.Admin) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.admin
+		SET password=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		admin.Password, dto.CurrUser, currTime, admin.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

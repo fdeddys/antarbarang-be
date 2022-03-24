@@ -142,3 +142,47 @@ func UpdateSeller(seller model.Seller) (string, error) {
 	totalData, _ := res.RowsAffected()
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
+
+func UpdateStatusSeller(idSeller int64, statusSeller interface{}) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.sellers
+		SET status=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		statusSeller, dto.CurrUser, currTime, idSeller)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}
+
+func ChangePasswordSeller(seller model.Seller) (string, error) {
+
+	currTime := util.GetCurrTimeUnix()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE public.sellers
+		SET password=$1,  last_update_by=$2, last_update=$3
+		WHERE id=$4;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		seller.Password, dto.CurrUser, currTime, seller.ID)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

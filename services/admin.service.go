@@ -109,3 +109,21 @@ func (a *AdminService) LoginAdminByKode(kode, password string) dto.ContentRespon
 	result.Contents = "Login success"
 	return result
 }
+
+func (a *AdminService) ChangePasswordAdmin(admin model.Admin) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	msg, err := repository.ChangePasswordAdmin(admin)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}

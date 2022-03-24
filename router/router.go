@@ -25,6 +25,8 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/login", handlers.LoginSellerHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.SaveSellerHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.SellerUpdateHandler).Methods(http.MethodPut)
+	s.HandleFunc("/seller-id/{seller-id}/status/{active}", handlers.SellerUpdateStatusHandler).Methods(http.MethodGet)
+	s.HandleFunc("/change-password", handlers.SellerChangePasswordHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/customer").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetCustomerByIDHandler).Methods(http.MethodGet)
@@ -32,6 +34,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/nama/{nama}", handlers.GetCustomerByNamaHandler).Methods(http.MethodGet)
 	s.HandleFunc("/", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.CustomerUpdateHandler).Methods(http.MethodPut)
+	s.HandleFunc("/customer-id/{customer-id}/status/{active}", handlers.CustomerUpdateStatusHandler).Methods(http.MethodGet)
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetDriverByIdHandler).Methods(http.MethodGet)
@@ -39,6 +42,8 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("/login", handlers.LoginDriverHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.DriverUpdateHandler).Methods(http.MethodPut)
+	s.HandleFunc("/driver-id/{driver-id}/status/{active}", handlers.DriverUpdateStatusHandler).Methods(http.MethodGet)
+	s.HandleFunc("/change-password", handlers.DriverChangePasswordHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/admin").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetAdminByIdHandler).Methods(http.MethodGet)
@@ -46,6 +51,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.AdminCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.AdminUpdateHandler).Methods(http.MethodPut)
 	s.HandleFunc("/login", handlers.LoginAdminHandler).Methods(http.MethodPost)
+	s.HandleFunc("/change-password", handlers.AdminChangePasswordHandler).Methods(http.MethodPost)
 
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()

@@ -110,3 +110,61 @@ func DriverUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(result))
 }
+
+func DriverUpdateStatusHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	driverId := vars["driver-id"]
+	statusActive := vars["active"]
+	var active bool
+
+	if driverId == "" {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak boleh kosong"
+		return
+	}
+
+	seller, err := strconv.ParseInt(driverId, 10, 64)
+	if err != nil {
+		var res dto.ContentResponse
+		res.ErrCode = constanta.ERR_CODE_04
+		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
+		res.Contents = "code tidak valid"
+		return
+	}
+
+	if statusActive == "1" {
+		active = true
+	} else {
+		active = false
+	}
+
+	res := driverService.UpdateStatusDriverActive(seller, active)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}
+
+func DriverChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+
+	var driver model.Driver
+
+	dataBodyReq, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(dataBodyReq, &driver)
+
+	if err != nil {
+		fmt.Println("Error Struct", err.Error())
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Error struct " + err.Error()))
+		return
+	}
+
+	res := driverService.ChangePasswordDriver(driver)
+	result, _ := json.Marshal(res)
+	w.Header().Set("content-type", "application-json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(result))
+}

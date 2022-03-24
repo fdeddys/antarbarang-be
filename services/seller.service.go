@@ -108,3 +108,44 @@ func (s *SellerService) UpdateSeller(seller model.Seller) dto.ContentResponse {
 	result.Contents = msg
 	return result
 }
+
+func (s *SellerService) UpdateStatusSellerActive(sellerId int64, active bool) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	statusSeller := enumerate.NONACTIVE
+	if active {
+		statusSeller = enumerate.ACTIVE
+	}
+
+	msg, err := repository.UpdateStatusSeller(sellerId, statusSeller)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}
+
+func (s *SellerService) ChangePasswordSeller(seller model.Seller) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	msg, err := repository.ChangePasswordSeller(seller)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_10
+		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		return result
+	}
+	result.Contents = msg
+	return result
+}
