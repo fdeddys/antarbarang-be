@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "com.ddabadi.antarbarang/database"
+	_ "com.ddabadi.antarbarang/redis"
 	"com.ddabadi.antarbarang/router"
 )
 

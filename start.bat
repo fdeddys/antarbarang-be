@@ -3,5 +3,7 @@ set DATABASE_USER=postgres
 set DATABASE_PASS=paramadaksa
 set DATABASE_DBNAME=antarBarang
 set DATABASE_PORT=5432
+set REDIS_HOST=localhost
+set REDIS_PORT=6379
 
 go run main.go
