@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
@@ -16,8 +18,8 @@ func FindCustomerById(id int) (model.Customer, error) {
 
 	sqlStatement := `
 		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
-		FROM public.customers	
-		WHERE id = $1;
+		FROM customers	
+		WHERE id = ?;
 	`
 	var customer model.Customer
 	err := db.
@@ -27,7 +29,7 @@ func FindCustomerById(id int) (model.Customer, error) {
 			&customer.SellerId,
 			&customer.Nama,
 			&customer.Hp,
-			&customer.Alamat,
+			&customer.Address,
 			&customer.Coordinate,
 			&customer.Status,
 			&customer.LastUpdateBy,
@@ -49,30 +51,36 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		INSERT INTO public.customers
+		INSERT INTO customers
 			(seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id`
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		`
 
-	err := db.
-		QueryRow(
-			sqlStatement,
-			customer.SellerId,
-			customer.Nama,
-			customer.Hp,
-			customer.Alamat,
-			customer.Coordinate,
-			enumerate.ACTIVE,
-			dto.CurrUser,
-			util.GetCurrTimeUnix(),
-		).
-		Scan(&lastInsertId)
-	// customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
+	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelfunc()
+	stmt, err := db.PrepareContext(ctx, sqlStatement)
 	if err != nil {
-		return lastInsertId, err
+		return 0, err
+	}
+	res, err := stmt.ExecContext(
+		ctx,
+		customer.SellerId,
+		customer.Nama,
+		customer.Hp,
+		customer.Address,
+		customer.Coordinate,
+		enumerate.ACTIVE,
+		dto.CurrUser,
+		util.GetCurrTimeUnix(),
+	)
+	if err != nil {
+		return 0, err
+	}
+	lastInsertId, err = res.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 	return lastInsertId, nil
-
 }
 
 func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
@@ -83,7 +91,7 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 	datas, err := db().Query(`
 		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
 		FROM customers	
-		WHERE = $1 `,
+		WHERE seller_id= ? `,
 		sellerId)
 
 	if err != nil {
@@ -96,7 +104,7 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 			&customer.SellerId,
 			&customer.Nama,
 			&customer.Hp,
-			&customer.Alamat,
+			&customer.Address,
 			&customer.Coordinate,
 			&customer.Status,
 			&customer.LastUpdateBy,
@@ -116,17 +124,30 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 func FindCustomerByNama(nama string) ([]model.Customer, error) {
 
 	customers := []model.Customer{}
-	db := database.GetConn
+	db := database.GetConn()
 
-	datas, err := db().Query(`
+	sqlFindCustomerByNama := `
 		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
 		FROM customers	
-		WHERE nama like '%$1%' `,
-		nama)
+		WHERE nama like ? 
+	`
+	//
+
+	// var customer model.Customer
+	datas, err := db.QueryContext(
+		context.Background(),
+		sqlFindCustomerByNama,
+		"%"+nama+"%")
+	// 	.
+	// Scan(
+
+	// )
 
 	if err != nil {
+		fmt.Println("Error query context ", err.Error())
 		return customers, err
 	}
+
 	for datas.Next() {
 		var customer model.Customer
 		err = datas.Scan(
@@ -134,7 +155,7 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 			&customer.SellerId,
 			&customer.Nama,
 			&customer.Hp,
-			&customer.Alamat,
+			&customer.Address,
 			&customer.Coordinate,
 			&customer.Status,
 			&customer.LastUpdateBy,
@@ -142,7 +163,7 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 		)
 		customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
 		if err != nil {
-			fmt.Println("Error fetch data next")
+			fmt.Println("Error fetch data next : ", err.Error())
 		}
 		customers = append(customers, customer)
 	}
@@ -157,14 +178,14 @@ func UpdateCustomer(customer model.Customer) (string, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.customers
-		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
-		WHERE id=$6;
+		UPDATE customers
+		SET nama=?,  last_update_by=?, last_update=?, hp=?, alamat=?, coordinate = ?
+		WHERE id=?;
 	`
 
 	res, err := db.Exec(
 		sqlStatement,
-		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.ID)
+		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Address, customer.Coordinate, customer.ID)
 
 	if err != nil {
 		return "", err
@@ -179,9 +200,9 @@ func UpdateStatusCustomer(idCustomer int64, statusCustomer interface{}) (string,
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.customers
-		SET status=$1,  last_update_by=$2, last_update=$3
-		WHERE id=$4;
+		UPDATE customers
+		SET status= ?,  last_update_by= ?, last_update= ?
+		WHERE id  = ?;
 	`
 
 	res, err := db.Exec(

@@ -11,13 +11,13 @@ import (
 type CustomerService struct {
 }
 
-func (c *CustomerService) CreateCustomer(driver model.Customer) dto.ContentResponse {
+func (c *CustomerService) CreateCustomer(customer model.Customer) dto.ContentResponse {
 
 	var result dto.ContentResponse
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	lastInsertId, err := repository.SaveCustomer(driver)
+	lastInsertId, err := repository.SaveCustomer(customer)
 	if err != nil {
 		result.Contents = err.Error()
 		result.ErrCode = constanta.ERR_CODE_10
@@ -55,8 +55,8 @@ func (c *CustomerService) GetCustomerByNama(nama string) dto.ContentResponse {
 	customers, err := repository.FindCustomerByNama(nama)
 	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		result.ErrCode = constanta.ERR_CODE_11
+		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
 		return result
 	}
 	result.Contents = customers
@@ -73,8 +73,8 @@ func (c *CustomerService) GetCustomerBySellerId(sellerId int64) dto.ContentRespo
 	customers, err := repository.FindCustomerBySellerId(sellerId)
 	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		result.ErrCode = constanta.ERR_CODE_11
+		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
 		return result
 	}
 	result.Contents = customers
@@ -92,8 +92,8 @@ func (c *CustomerService) UpdateCustomer(customer model.Customer) dto.ContentRes
 
 	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
 		return result
 	}
 	result.Contents = msg
@@ -115,8 +115,8 @@ func (c *CustomerService) UpdateStatusCustomerActive(customerId int64, active bo
 
 	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
 		return result
 	}
 	result.Contents = msg

@@ -18,6 +18,9 @@ const (
 
 	ERR_CODE_11                 = "11"
 	ERR_CODE_11_FAILED_GET_DATA = "Failed get data to database"
+
+	ERR_CODE_12                    = "12"
+	ERR_CODE_12_FAILED_UPDATE_DATA = "Failed update data to database"
 )
 
 const (

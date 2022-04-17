@@ -122,7 +122,7 @@ func DriverUpdateStatusHandler(w http.ResponseWriter, r *http.Request) {
 		var res dto.ContentResponse
 		res.ErrCode = constanta.ERR_CODE_04
 		res.ErrDesc = constanta.ERR_CODE_04_PARAM_QUERY_STRING
-		res.Contents = "code tidak boleh kosong"
+		res.Contents = "id tidak boleh kosong"
 		return
 	}
 

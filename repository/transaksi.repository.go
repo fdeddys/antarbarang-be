@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"time"
 
 	"com.ddabadi.antarbarang/database"
 	"com.ddabadi.antarbarang/dto"
@@ -11,23 +13,23 @@ import (
 )
 
 func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
-	db := database.GetConn
+	db := database.GetConn()
 
 	var customer model.Customer
+	sqlSearchCustomer := ` 
+		SELECT id , coordinate
+		FROM customers
+		WHERE id = ?
+	`
+	errCustomer := db.QueryRow(
+		sqlSearchCustomer,
+		transaksi.IdCustomer,
+	).Scan(&customer.ID, &customer.Coordinate)
 
-	errCustomer := db().
-		QueryRow(`
-			SELECT * 
-			FROM public.cutomers
-			WHERE id = $1
-			`,
-			transaksi.IdCustomer,
-		).Scan(&customer)
 	if errCustomer != nil {
 		return transaksi, errors.New("Error Table Customer : " + errCustomer.Error())
 	}
 
-	lastInsertId := 0
 	transaksi.CoordinateTujuan = customer.Coordinate
 	transaksi.TransaksiDate = util.GetCurrTimeUnix()
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.NEW)
@@ -35,32 +37,56 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.LastUpdateBy = dto.CurrUser
 
 	sqlStatement := `
-		INSERT INTO public.transaksi
+		INSERT INTO transaksi
 			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		RETURNING id`
+		VALUES (?,?,?,?,?,?,?,?,?,?,?)
+	`
+	ctx, errFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer errFunc()
 
-	err := db().
-		QueryRow(
-			sqlStatement,
-			transaksi.TransaksiDate,
-			transaksi.JamRequestAntar,
-			transaksi.TanggalRequestAntar,
-			transaksi.NamaProduct,
-			transaksi.Status,
-			transaksi.CoordinateTujuan,
-			transaksi.Keterangan,
-			transaksi.IdSeller,
-			transaksi.IdCustomer,
-			transaksi.LastUpdateBy,
-			transaksi.LastUpdate,
-		).
-		Scan(&lastInsertId)
+	stmt, err := db.PrepareContext(
+		ctx,
+		sqlStatement,
+	)
+	if err != nil {
+		return model.Transaksi{}, err
+	}
+
+	resp, err := stmt.ExecContext(
+		ctx,
+		transaksi.TransaksiDate,
+		transaksi.JamRequestAntar,
+		transaksi.TanggalRequestAntar,
+		transaksi.NamaProduct,
+		transaksi.Status,
+		transaksi.CoordinateTujuan,
+		transaksi.Keterangan,
+		transaksi.IdSeller,
+		transaksi.IdCustomer,
+		transaksi.LastUpdateBy,
+		transaksi.LastUpdate,
+	)
 
 	if err != nil {
-		return transaksi, err
+		return model.Transaksi{}, err
 	}
-	transaksi.ID = int64(lastInsertId)
+	idTrx, err := resp.LastInsertId()
+	if err != nil {
+		return model.Transaksi{}, err
+	}
+
+	transaksi.ID = idTrx
+	// err := db().
+	// 	QueryRow(
+	// 		sqlStatement,
+
+	// 	).
+	// 	Scan(&lastInsertId)
+
+	// if err != nil {
+	// 	return transaksi, err
+	// }
+	// transaksi.ID = int64(lastInsertId)
 	return transaksi, nil
 }
 
@@ -72,7 +98,7 @@ func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) 
 	errCustomer := db().
 		QueryRow(`
 				SELECT * 
-				FROM public.cutomers
+				FROM cutomers
 				WHERE id = $1
 			`,
 			transaksi.IdCustomer,
@@ -87,7 +113,7 @@ func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) 
 	transaksi.LastUpdateBy = dto.CurrUser
 
 	sqlStatement := `
-		UPDATE public.transaksi
+		UPDATE transaksi
 		SET
 			jam_request_antar = $1, 
 			tanggal_request_antar = $2, 
@@ -128,7 +154,7 @@ func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.LastUpdateBy = dto.CurrUser
 
 	sqlStatement := `
-		UPDATE public.transaksi
+		UPDATE transaksi
 		SET
 			id_driver = $1,
 			id_admin = $2,
@@ -163,7 +189,7 @@ func UpdateOnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.LastUpdateBy = dto.CurrUser
 
 	sqlStatement := `
-		UPDATE public.transaksi
+		UPDATE transaksi
 		SET
 			id_driver = $1,
 			id_admin = $2,
@@ -198,7 +224,7 @@ func OnTheWayRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.TanggalAmbil = util.GetCurrTimeUnix()
 
 	sqlStatement := `
-		UPDATE public.transaksi
+		UPDATE transaksi
 		SET
 			tanggal_ambil = $1,
 			photo_ambil = $2,
@@ -235,7 +261,7 @@ func DoneRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.TanggalSampai = util.GetCurrTimeUnix()
 
 	sqlStatement := `
-		UPDATE public.transaksi
+		UPDATE transaksi
 		SET
 			tanggal_sampai = $1,
 			photo_sampai = $2,

@@ -4,7 +4,7 @@ import "com.ddabadi.antarbarang/enumerate"
 
 type Transaksi struct {
 	ID                  int64                     `json:"id"`
-	TransaksiDate       int64                     `json:"transaksi_date"`
+	TransaksiDate       int64                     `json:"transaksiDate"`
 	TanggalRequestAntar int64                     `json:"tanggalRequestAntar"`
 	JamRequestAntar     string                    `json:"jamRequestAntar"`
 	NamaProduct         string                    `json:"namaProduct"`

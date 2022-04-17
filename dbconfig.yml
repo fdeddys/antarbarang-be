@@ -1,0 +1,4 @@
+production:
+  dialect: mysql
+  datasource: admin:'Pr@MoT10n'@tcp(156.67.214.228:3306)/db_antar_barang
+  dir: migration

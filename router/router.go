@@ -31,10 +31,10 @@ func InitRouter() *mux.Router {
 	s = r.PathPrefix(pathPref + "/customer").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetCustomerByIDHandler).Methods(http.MethodGet)
 	s.HandleFunc("/seller-id/{sellerId}", handlers.GetCustomerBySellerIdHandler).Methods(http.MethodGet)
-	s.HandleFunc("/nama/{nama}", handlers.GetCustomerByNamaHandler).Methods(http.MethodGet)
-	s.HandleFunc("/", handlers.CustomerCreateHandler).Methods(http.MethodPost)
+	s.HandleFunc("/nama", handlers.GetCustomerByNamaHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.CustomerUpdateHandler).Methods(http.MethodPut)
-	s.HandleFunc("/customer-id/{customer-id}/status/{active}", handlers.CustomerUpdateStatusHandler).Methods(http.MethodGet)
+	s.HandleFunc("/{customer-id}/status/{active}", handlers.CustomerUpdateStatusHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetDriverByIdHandler).Methods(http.MethodGet)
@@ -42,7 +42,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.DriverCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("/login", handlers.LoginDriverHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.DriverUpdateHandler).Methods(http.MethodPut)
-	s.HandleFunc("/driver-id/{driver-id}/status/{active}", handlers.DriverUpdateStatusHandler).Methods(http.MethodGet)
+	s.HandleFunc("/{driver-id}/status/{active}", handlers.DriverUpdateStatusHandler).Methods(http.MethodPost)
 	s.HandleFunc("/change-password", handlers.DriverChangePasswordHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/admin").Subrouter()

@@ -13,7 +13,7 @@ func generateKode(prefix string) (string, error) {
 
 	row, err := db.
 		Query(
-			`SELECT no_terakhir from uruts where prefix = $1 FOR UPDATE `,
+			`SELECT no_terakhir from uruts where prefix = ? FOR UPDATE `,
 			prefix)
 	if err != nil {
 		fmt.Println("Error => ", err.Error())
@@ -48,7 +48,8 @@ func generateKode(prefix string) (string, error) {
 	newKode := prefix + result[len(result)-5:]
 	// len(result)-1
 	fmt.Println("kode baru ", newKode)
-	_, errUpd := db.Exec("UPDATE uruts set no_terakhir = $1 where prefix = $2", nextNumb, prefix)
+
+	_, errUpd := db.Exec("UPDATE uruts set no_terakhir = ? where prefix = ?", nextNumb, prefix)
 	if errUpd != nil {
 		return "0", err
 	}

@@ -143,8 +143,8 @@ func (d *DriverService) ChangePasswordDriver(driver model.Driver) dto.ContentRes
 
 	if err != nil {
 		result.Contents = err.Error()
-		result.ErrCode = constanta.ERR_CODE_10
-		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
 		return result
 	}
 	result.Contents = msg

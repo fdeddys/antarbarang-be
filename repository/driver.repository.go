@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
@@ -17,8 +19,8 @@ func FindDriverById(id int) (model.Driver, error) {
 
 	sqlStatement := `
 		SELECT id, nama, hp, alamat, photo, status, last_update_by, last_update
-		FROM public.drivers
-		WHERE id = $1;
+		FROM drivers
+		WHERE id = ?;
 	`
 	var driver model.Driver
 	err := db().
@@ -55,17 +57,37 @@ func SaveDriver(driver model.Driver) (int64, error) {
 	}
 
 	sqlStatement := `
-		INSERT INTO public.drivers
-			(nama, kode, hp, alamat, photo, status, last_update_by, last_update)
-		VALUES ($1::text, $2::text, $3::text, $4::text, $5, $6, $7, $8)
-		RETURNING id`
+		INSERT INTO drivers
+			(nama, kode, hp, alamat, photo, password, status, last_update_by, last_update)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
 
-	err := db.QueryRow(
-		sqlStatement,
-		driver.Nama, driver.Kode, driver.Hp, driver.Alamat, driver.Photo, driver.Status, dto.CurrUser, currTime).
-		Scan(&lastInsertId)
+	stmt, err := db.PrepareContext(ctx, sqlStatement)
 	if err != nil {
-		return lastInsertId, err
+		return 0, err
+	}
+
+	resp, err := stmt.ExecContext(
+		ctx,
+		driver.Nama,
+		driver.Kode,
+		driver.Hp,
+		driver.Alamat,
+		driver.Photo,
+		driver.Password,
+		driver.Status,
+		dto.CurrUser,
+		currTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	lastInsertId, err = resp.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 	return lastInsertId, nil
 }
@@ -76,8 +98,8 @@ func FindDriverByCode(kode string) (model.Driver, error) {
 
 	sqlStatement := `
 		SELECT id, nama, kode, hp, alamat, photo, status, last_update_by, last_update
-		FROM public.drivers	
-		WHERE kode = $1;
+		FROM drivers	
+		WHERE kode = ?;
 	`
 	var driver model.Driver
 	err := db.
@@ -105,8 +127,8 @@ func LoginDriverByCode(kode string) (model.Driver, error) {
 
 	sqlStatement := `
 		SELECT nama, password, status
-		FROM public.drivers
-		WHERE kode = $1; 
+		FROM drivers
+		WHERE kode = ?; 
 	`
 	var driver model.Driver
 	err := db.
@@ -128,9 +150,9 @@ func UpdateDriver(driver model.Driver) (string, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.drivers
-		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
-		WHERE id=$6;
+		UPDATE drivers
+		SET nama = ?,  last_update_by = ?, last_update = ?, hp = ?, alamat = ?
+		WHERE id = ?;
 	`
 
 	res, err := db.Exec(
@@ -150,9 +172,9 @@ func UpdateStatusDriver(idDriver int64, statusDriver interface{}) (string, error
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.drivers
-		SET status=$1,  last_update_by=$2, last_update=$3
-		WHERE id=$4;
+		UPDATE drivers
+		SET status = ?,  last_update_by= ?, last_update=?
+		WHERE id   = ?;
 	`
 
 	res, err := db.Exec(
@@ -172,9 +194,9 @@ func ChangePasswordDriver(driver model.Driver) (string, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.drivers
-		SET password=$1,  last_update_by=$2, last_update=$3
-		WHERE id=$4;
+		UPDATE drivers
+		SET password= ?,  last_update_by= ?, last_update= ?
+		WHERE id = ?;
 	`
 
 	res, err := db.Exec(

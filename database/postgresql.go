@@ -18,27 +18,27 @@ import (
 // )
 
 var (
-	// conn     *pgx.Conn
-	db       *sql.DB
-	host     string
-	port     int32
-	user     string
-	password string
-	dbname   string
+// conn     *pgx.Conn
+// db *sql.DB
+// host     string
+// port     int32
+// user     string
+// password string
+// dbname   string
 )
 
-func init() {
+func initX() {
 
 	host = os.Getenv("DATABASE_HOST")
 	user = os.Getenv("DATABASE_USER")
 	password = os.Getenv("DATABASE_PASS")
 	dbname = os.Getenv("DATABASE_DBNAME")
-	if openDatabase() != nil {
+	if openDatabaseX() != nil {
 		fmt.Println("Failed Open Database!")
 	}
 }
 
-func openDatabase() error {
+func openDatabaseX() error {
 	port, errPort := strconv.ParseInt(os.Getenv("DATABASE_PORT"), 10, 32)
 	if errPort != nil {
 		port = 5432
@@ -63,7 +63,7 @@ func openDatabase() error {
 	return nil
 }
 
-func GetConn() *sql.DB {
+func GetConnX() *sql.DB {
 	if err := db.Ping(); err != nil {
 		fmt.Println("Error ping database !", err.Error())
 	}

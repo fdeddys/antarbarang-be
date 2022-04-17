@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/database"
@@ -17,15 +19,16 @@ func FindSellerById(id int64) (model.Seller, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, nama, hp, alamat, status, last_update_by, last_update
-		FROM public.sellers
-		WHERE id = $1;
+		SELECT id, kode, nama, hp, alamat, status, last_update_by, last_update
+		FROM sellers
+		WHERE id = ?;
 	`
 	var seller model.Seller
 	err := db.
 		QueryRow(sqlStatement, id).
 		Scan(
 			&seller.ID,
+			&seller.Kode,
 			&seller.Nama,
 			&seller.Hp,
 			&seller.Alamat,
@@ -36,6 +39,7 @@ func FindSellerById(id int64) (model.Seller, error) {
 	if err != nil {
 		return seller, err
 	}
+	seller.LastUpdateStr = util.DateUnixToString(seller.LastUpdate)
 	return seller, nil
 }
 
@@ -44,15 +48,16 @@ func FindSellerByCode(kode string) (model.Seller, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, nama, hp, alamat, status, last_update_by, last_update
-		FROM public.sellers
-		WHERE kode = $1;
+		SELECT id, kode, nama, hp, alamat, status, last_update_by, last_update
+		FROM sellers
+		WHERE kode = ?;
 	`
 	var seller model.Seller
 	err := db.
 		QueryRow(sqlStatement, kode).
 		Scan(
 			&seller.ID,
+			&seller.Kode,
 			&seller.Nama,
 			&seller.Hp,
 			&seller.Alamat,
@@ -69,8 +74,7 @@ func FindSellerByCode(kode string) (model.Seller, error) {
 
 func SaveSeller(seller model.Seller) (model.Seller, error) {
 
-	lastInsertId := 0
-	db := database.GetConn
+	db := database.GetConn()
 	kode, errKode := generateKode(constanta.PREFIX_SELLER)
 	seller.Kode = kode
 	seller.Status = enumerate.ACTIVE
@@ -79,22 +83,26 @@ func SaveSeller(seller model.Seller) (model.Seller, error) {
 	}
 
 	sqlStatement := `
-		INSERT INTO public.sellers
+		INSERT INTO sellers
 			(nama, hp, kode, password, alamat,  status, last_update_by, last_update)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id`
+		VALUES (?,?,?,?,?,?,?,?)
+	`
 
-	err := db().
-		QueryRow(
-			sqlStatement,
-			seller.Nama, seller.Hp, seller.Kode, seller.Password, seller.Alamat, seller.Status, dto.CurrUser, util.GetCurrTimeUnix(),
-		).
-		Scan(&lastInsertId)
+	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelfunc()
+	stmt, err := db.PrepareContext(ctx, sqlStatement)
+	if err != nil {
+		return model.Seller{}, err
+	}
+
+	res, err := stmt.ExecContext(ctx,
+		seller.Nama, seller.Hp, seller.Kode, seller.Password, seller.Alamat, seller.Status, dto.CurrUser, util.GetCurrTimeUnix(),
+	)
 
 	if err != nil {
 		return seller, err
 	}
-	seller.ID = int64(lastInsertId)
+	seller.ID, _ = res.LastInsertId()
 	return seller, nil
 }
 
@@ -104,8 +112,8 @@ func LoginSellerByCode(kode string) (model.Seller, error) {
 
 	sqlStatement := `
 		SELECT nama, password, status
-		FROM public.sellers
-		WHERE kode = $1; 
+		FROM sellers
+		WHERE kode = ?; 
 	`
 	var seller model.Seller
 	err := db.
@@ -127,9 +135,9 @@ func UpdateSeller(seller model.Seller) (string, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.sellers
-		SET nama=$1,  last_update_by=$2, last_update=$3, hp=$4, alamat=$5
-		WHERE id=$6;
+		UPDATE sellers
+		SET nama=?, last_update_by=?, last_update=?, hp=?, alamat=?
+		WHERE id=?;
 	`
 
 	res, err := db.Exec(
@@ -149,9 +157,9 @@ func UpdateStatusSeller(idSeller int64, statusSeller interface{}) (string, error
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.sellers
-		SET status=$1,  last_update_by=$2, last_update=$3
-		WHERE id=$4;
+		UPDATE sellers
+		SET status=?,  last_update_by=?, last_update=?
+		WHERE id=?;
 	`
 
 	res, err := db.Exec(
@@ -171,9 +179,9 @@ func ChangePasswordSeller(seller model.Seller) (string, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		UPDATE public.sellers
-		SET password=$1,  last_update_by=$2, last_update=$3
-		WHERE id=$4;
+		UPDATE sellers
+		SET password=?,  last_update_by=?, last_update=?
+		WHERE id=?;
 	`
 
 	res, err := db.Exec(
