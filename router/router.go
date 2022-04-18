@@ -55,7 +55,7 @@ func InitRouter() *mux.Router {
 
 	s = r.PathPrefix(pathPref + "/transaksi").Subrouter()
 	s.HandleFunc("/new", handlers.NewTransaksiHandler).Methods(http.MethodPost)
-	s.HandleFunc("/on-proccess", handlers.OnProccessHandler).Methods(http.MethodPost)
+	s.HandleFunc("/asign-driver", handlers.OnProccessHandler).Methods(http.MethodPost)
 	s.HandleFunc("/on-the-way", handlers.OnTheWayHandler).Methods(http.MethodPost)
 	s.HandleFunc("/done", handlers.DoneProcessHandler).Methods(http.MethodPost)
 

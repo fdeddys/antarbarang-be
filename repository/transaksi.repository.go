@@ -156,13 +156,13 @@ func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	sqlStatement := `
 		UPDATE transaksi
 		SET
-			id_driver = $1,
-			id_admin = $2,
-			status = $3,
-			last_update_by = $4,
-			last_update = $5
+			id_driver = ?,
+			id_admin = ?,
+			status = ?,
+			last_update_by = ?,
+			last_update = ?
 		WHERE	
-			id = $6
+			id = ?
 	`
 
 	_, err := db.Exec(
@@ -226,13 +226,13 @@ func OnTheWayRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	sqlStatement := `
 		UPDATE transaksi
 		SET
-			tanggal_ambil = $1,
-			photo_ambil = $2,
-			status = $3,
-			last_update_by = $4,
-			last_update = $5
+			tanggal_ambil = ?,
+			photo_ambil = ?,
+			status = ?,
+			last_update_by = ?,
+			last_update = ?
 		WHERE	
-			id = $6
+			id = ?
 	`
 
 	_, err := db.Exec(
@@ -263,13 +263,13 @@ func DoneRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	sqlStatement := `
 		UPDATE transaksi
 		SET
-			tanggal_sampai = $1,
-			photo_sampai = $2,
-			status = $3,
-			last_update_by = $4,
-			last_update = $5
+			tanggal_sampai = ?,
+			photo_sampai = ?,
+			status = ?,
+			last_update_by = ?,
+			last_update = ?
 		WHERE	
-			id = $6
+			id = ?
 	`
 
 	_, err := db.Exec(
