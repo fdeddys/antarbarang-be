@@ -12,3 +12,14 @@ type LoginRequestDto struct {
 	Kode     string `json:"kode"`
 	Password string `json:"password"`
 }
+
+type LoginUsernameDto struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponseDto struct {
+	ErrCode string `json:"errCode"`
+	ErrDesc string `json:"errDesc"`
+	Token   string `json:"token"`
+}

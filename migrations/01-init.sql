@@ -54,6 +54,7 @@ create table admins (
     status int default 0,
     last_update_by varchar(255) NULL,
 	last_update bigint NULL,
+    role_id int(11) DEFAULT NULL,
     PRIMARY KEY (id)    
 );
 CREATE INDEX idx_kode ON admins  (kode);
@@ -98,6 +99,46 @@ CREATE INDEX idx_trx_date ON transaksi  (transaksi_date);
 CREATE INDEX idx_tanggal_request_antar ON transaksi  (tanggal_request_antar);
 CREATE INDEX idx_seller ON transaksi  (id_seller);
 CREATE INDEX idx_driver ON transaksi  (id_driver);
+
+
+CREATE TABLE m_menus (
+    id bigint NOT NULL,
+    name character varying(30) NOT NULL,
+    description character varying(100) NOT NULL,
+    last_update_by character varying(100),
+    last_update timestamp without time zone,
+    link character varying(200),
+    parent_id bigint,
+    icon character varying(50),
+    status integer
+);
+
+
+CREATE TABLE m_role_menu (
+    role_id bigint NOT NULL,
+    menu_id bigint NOT NULL,
+    status integer,
+    last_update_by character varying(100),
+    last_update timestamp without time zone
+);
+
+CREATE TABLE public.m_roles (
+    id bigint NOT NULL,
+    name character varying(50) NOT NULL,
+    description character varying(255) NOT NULL,
+    last_update_by character varying(100),
+    last_update timestamp without time zone
+);
+
+
+CREATE TABLE public.m_role_user (
+    role_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    last_update_by character varying(100),
+    last_update timestamp without time zone,
+    status integer DEFAULT 0
+);
+
 
 
 -- +migrate Down

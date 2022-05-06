@@ -11,6 +11,7 @@ type Admin struct {
 	LastUpdateBy  string                 `json:"last_update_by"`
 	LastUpdate    int64                  `json:"last_update"`
 	LastUpdateStr string                 `json:"last_update_str"`
+	RoleID        int64                  `json:"roleId"`
 }
 
 // TableName ...

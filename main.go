@@ -19,6 +19,7 @@ import (
 	"com.ddabadi.antarbarang/router"
 
 	"github.com/gobuffalo/packr/v2"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -26,21 +27,38 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	// migration()
+	migration()
 
 	port := os.Getenv("PORT")
 	addr := fmt.Sprintf("0.0.0.0:%v", port)
-
+	fmt.Println("PORT : ", port)
 	r := router.InitRouter()
 
+	//cors optionsGoes Below
+	corsOpts := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{
+			http.MethodGet, //http methods for your app
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodHead,
+		},
+		AllowedHeaders: []string{
+			"*", //or you can your header key values which you are using in your applicatio
+		}})
+
 	server := &http.Server{
-		Handler:      r,
+		Handler:      corsOpts.Handler(r),
 		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
+
 		fmt.Println("Server started")
 		if err := server.ListenAndServe(); err != nil {
 			log.Println(err)

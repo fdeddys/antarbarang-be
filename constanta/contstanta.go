@@ -1,5 +1,10 @@
 package constanta
 
+const (
+	TokenSecretKey = "Ant@r_bAR@n6$"
+	VERSION        = "B060522"
+)
+
 // ERR code Global
 const (
 	ERR_CODE_00     = "00"

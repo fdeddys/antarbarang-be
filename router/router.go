@@ -1,15 +1,21 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
+	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/dto"
-	handlers "com.ddabadi.antarbarang/handlers"
+	handlers "com.ddabadi.antarbarang/handler"
 	"github.com/gorilla/mux"
 )
+
+type VersionApp struct {
+	Version string `json:"version"`
+}
 
 func InitRouter() *mux.Router {
 
@@ -58,6 +64,20 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/asign-driver", handlers.OnProccessHandler).Methods(http.MethodPost)
 	s.HandleFunc("/on-the-way", handlers.OnTheWayHandler).Methods(http.MethodPost)
 	s.HandleFunc("/done", handlers.DoneProcessHandler).Methods(http.MethodPost)
+
+	s = r.PathPrefix(pathPref + "/parameter").Subrouter()
+	s.HandleFunc("/byname/{paramname}", handlers.ParamByNameHandler).Methods(http.MethodGet)
+
+	s = r.PathPrefix(pathPref + "/version").Subrouter()
+	s.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
+		ver := VersionApp{
+			Version: constanta.VERSION,
+		}
+		result, _ := json.Marshal(ver)
+		w.Header().Set("content-type", "application-json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(result)
+	}).Methods(http.MethodGet)
 
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()

@@ -92,7 +92,7 @@ func AdminUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 func LoginAdminHandler(w http.ResponseWriter, r *http.Request) {
 
-	var loginRequest dto.LoginRequestDto
+	var loginRequest dto.LoginUsernameDto
 
 	dataBodyReq, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(dataBodyReq, &loginRequest)
@@ -104,7 +104,7 @@ func LoginAdminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := adminService.LoginAdminByKode(loginRequest.Kode, loginRequest.Password)
+	resp := adminService.LoginAdminByNama(loginRequest.Username, loginRequest.Password)
 	result, _ := json.Marshal(resp)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)
