@@ -134,7 +134,7 @@ func LoginAdminByNama(nama string) (model.Admin, error) {
 	db := database.GetConn()
 
 	sqlStatement := `
-		SELECT nama, password, status
+		SELECT id, nama, password, status
 		FROM admins
 		WHERE nama = ? and status =1 ; 
 	`
@@ -142,6 +142,7 @@ func LoginAdminByNama(nama string) (model.Admin, error) {
 	err := db.
 		QueryRow(sqlStatement, nama).
 		Scan(
+			&admin.ID,
 			&admin.Nama,
 			&admin.Password,
 			&admin.Status,

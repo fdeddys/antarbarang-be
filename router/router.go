@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/dto"
 	handlers "com.ddabadi.antarbarang/handler"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -68,6 +71,9 @@ func InitRouter() *mux.Router {
 	s = r.PathPrefix(pathPref + "/parameter").Subrouter()
 	s.HandleFunc("/byname/{paramname}", handlers.ParamByNameHandler).Methods(http.MethodGet)
 
+	s = r.PathPrefix(pathPref + "/menu").Subrouter()
+	s.HandleFunc("/list-user-menu", handlers.GetMenuByUsernameHandler).Methods(http.MethodGet)
+
 	s = r.PathPrefix(pathPref + "/version").Subrouter()
 	s.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
 		ver := VersionApp{
@@ -113,18 +119,108 @@ func InitRouter() *mux.Router {
 
 func cekToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		dto.CurrUser = "system"
-		if token != "" {
-			// We found the token in our map
-			log.Printf("Authenticated user ")
-			// Pass down the request to the next middleware (or final handler)
-			next.ServeHTTP(w, r)
-		} else {
+		tokenString := r.Header.Get("Authorization")
+		var res dto.ContentResponse
+		// dto.CurrUser = "system"
+		if tokenString == "" {
 			// Write an error and stop the handler chain
 			log.Printf("Forbidden user ")
 			next.ServeHTTP(w, r)
+			return
 		}
+
+		if strings.HasPrefix(tokenString, "Bearer ") == false {
+			// var res dto.ContentResponse
+			res.ErrCode = constanta.ERR_CODE_21
+			res.ErrDesc = constanta.ERR_CODE_21__INVALID_AUTH
+
+			result, _ := json.Marshal(res)
+			w.Header().Set("content-type", "application-json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(result)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		tokenString = strings.Replace(tokenString, "Bearer ", "", -1)
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if jwt.GetSigningMethod("HS256") != token.Method {
+
+				res.ErrCode = constanta.ERR_CODE_21
+				res.ErrDesc = constanta.ERR_CODE_21__INVALID_AUTH
+				result, _ := json.Marshal(res)
+				w.Header().Set("content-type", "application-json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(result)
+				next.ServeHTTP(w, r)
+				// return
+			}
+			return []byte(constanta.TokenSecretKey), nil
+		})
+
+		if token != nil && err == nil {
+			claims := token.Claims.(jwt.MapClaims)
+
+			fmt.Println("claims : ", claims)
+
+			fmt.Println("User name from TOKEN ", claims["user"])
+
+			unixNano := time.Now().UnixNano()
+			timeNowInInt := unixNano / 1000000
+
+			tokenCreated := (claims["tokenCreated"])
+			dto.CurrUser = (claims["user"]).(string)
+			currUserId := (claims["userId"]).(string)
+			dto.CurrUserId, _ = strconv.ParseInt(currUserId, 10, 64)
+
+			fmt.Println("now : ", timeNowInInt)
+			fmt.Println("token created time : ", tokenCreated)
+			fmt.Println("user by token : ", dto.CurrUser)
+			fmt.Println("user by token ID : ", dto.CurrUserId)
+
+			tokenCreatedInString := tokenCreated.(string)
+			tokenCreatedInInt, errTokenExpired := strconv.ParseInt(tokenCreatedInString, 10, 64)
+
+			if errTokenExpired != nil {
+				res.ErrCode = constanta.ERR_CODE_22
+				res.ErrDesc = constanta.ERR_CODE_22__TOKEN_EXPIRED
+				result, _ := json.Marshal(res)
+				w.Header().Set("content-type", "application-json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(result)
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if ((timeNowInInt - tokenCreatedInInt) / 1000) > constanta.TokenExpiredInMinutes {
+				res.ErrCode = constanta.ERR_CODE_22
+				res.ErrDesc = constanta.ERR_CODE_22__TOKEN_EXPIRED
+				result, _ := json.Marshal(res)
+				w.Header().Set("content-type", "application-json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(result)
+				next.ServeHTTP(w, r)
+				return
+			}
+			fmt.Println("Token already used for ", (timeNowInInt-tokenCreatedInInt)/1000, "sec, Max expired ", constanta.TokenExpiredInMinutes, "sec ")
+			// fmt.Println("token Valid ")
+
+		} else {
+			res.ErrCode = constanta.ERR_CODE_21
+			res.ErrDesc = constanta.ERR_CODE_21__INVALID_AUTH
+			result, _ := json.Marshal(res)
+			w.Header().Set("content-type", "application-json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(result)
+			// return w,r
+			next.ServeHTTP(w, r)
+			log.Printf("Authenticated user ")
+			return
+		}
+
+		// We found the token in our map
+		// Pass down the request to the next middleware (or final handler)
+		next.ServeHTTP(w, r)
 	})
 }
 

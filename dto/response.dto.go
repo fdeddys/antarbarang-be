@@ -1,6 +1,7 @@
 package dto
 
 var CurrUser string
+var CurrUserId int64
 
 type ContentResponse struct {
 	ErrCode  string      `json:"errCode"`

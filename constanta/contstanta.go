@@ -1,8 +1,9 @@
 package constanta
 
 const (
-	TokenSecretKey = "Ant@r_bAR@n6$"
-	VERSION        = "B060522"
+	TokenSecretKey        = "Ant@r_bAR@n6$"
+	VERSION               = "B060522"
+	TokenExpiredInMinutes = 8 * 60 * 60
 )
 
 // ERR code Global
@@ -31,6 +32,12 @@ const (
 const (
 	ERR_CODE_20              = "20"
 	ERR_CODE_20_LOGIN_FAILED = "Login Failed"
+
+	ERR_CODE_21               = "21"
+	ERR_CODE_21__INVALID_AUTH = "Invalid Authorization !"
+
+	ERR_CODE_22                = "22"
+	ERR_CODE_22__TOKEN_EXPIRED = "Token Expired !"
 )
 
 const (
