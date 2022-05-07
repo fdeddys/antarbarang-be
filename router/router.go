@@ -119,6 +119,14 @@ func InitRouter() *mux.Router {
 
 func cekToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("r=>url path=>", r.URL.Path)
+		var isExists = strings.Contains(r.URL.Path, "login")
+		if isExists {
+			fmt.Println("Login URL path")
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		tokenString := r.Header.Get("Authorization")
 		var res dto.ContentResponse
 		// dto.CurrUser = "system"
