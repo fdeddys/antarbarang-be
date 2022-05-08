@@ -24,3 +24,16 @@ type LoginResponseDto struct {
 	ErrDesc string `json:"errDesc"`
 	Token   string `json:"token"`
 }
+
+type SearchRequestDto struct {
+	Kode string `json:"kode"`
+	Nama string `json:"nama"`
+}
+
+type SearchResultDto struct {
+	TotalRow int         `json:"totalRow"`
+	Page     int         `json:"page"`
+	Count    int         `json:"count"`
+	Contents interface{} `json:"contents"`
+	Error    string      `json:"error"`
+}

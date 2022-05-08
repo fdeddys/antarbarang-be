@@ -149,3 +149,20 @@ func (s *SellerService) ChangePasswordSeller(seller model.Seller) dto.ContentRes
 	result.Contents = msg
 	return result
 }
+
+func (s *SellerService) SearchSellerPage(searchRequestDto dto.SearchRequestDto, page, count int) dto.SearchResultDto {
+
+	var result dto.SearchResultDto
+	data, totalData, err := repository.GetSellerPage(searchRequestDto, page, count)
+
+	if err != nil {
+		result.Error = err.Error()
+		return result
+	}
+	result.Contents = data
+	result.TotalRow = totalData
+	result.Page = page
+	result.Count = len(data)
+
+	return result
+}

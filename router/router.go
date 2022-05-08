@@ -36,6 +36,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.SellerUpdateHandler).Methods(http.MethodPut)
 	s.HandleFunc("/seller-id/{seller-id}/status/{active}", handlers.SellerUpdateStatusHandler).Methods(http.MethodGet)
 	s.HandleFunc("/change-password", handlers.SellerChangePasswordHandler).Methods(http.MethodPost)
+	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetSellerPageHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/customer").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetCustomerByIDHandler).Methods(http.MethodGet)

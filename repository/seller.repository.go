@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"com.ddabadi.antarbarang/constanta"
@@ -193,4 +196,119 @@ func ChangePasswordSeller(seller model.Seller) (string, error) {
 	}
 	totalData, _ := res.RowsAffected()
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}
+
+func generateQuery(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
+
+	sqlFindSeller := `
+		SELECT id, nama, hp, kode, password, alamat, status, last_update_by, last_update
+		FROM db_antar_barang.sellers	
+		WHERE nama like '%' and kode like '%' 
+	`
+	sqlCountSeller := `
+		SELECT count(*)
+		FROM db_antar_barang.sellers	
+		WHERE nama like '%' and kode like '%' 
+	`
+	return sqlFindSeller, sqlCountSeller
+
+}
+
+func GetSellerPage(searchRequestDto dto.SearchRequestDto, page, count int) ([]model.Seller, int, error) {
+	db := database.GetConn()
+	var sellers []model.Seller
+	var total int
+
+	sqlFindSeller, sqlCountSeller = generateQuery(searchRequestDto, page, count)
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+	errQuery := make(chan error)
+	errCount := make(chan error)
+
+	go AsyncQuerySearchSeller(db, sqlFindSeller, &sellers, errQuery)
+	go AsyncQueryCountSeller(db, sqlCountSeller, &total, errCount)
+
+	resErrCount := <-errCount
+	resErrQuery := <-errQuery
+
+	wg.Done()
+
+	if resErrCount != nil {
+		log.Println("errr-->", resErrCount)
+		return sellers, 0, resErrCount
+	}
+
+	if resErrQuery != nil {
+		return sellers, 0, resErrQuery
+	}
+
+	return sellers, total, nil
+}
+
+func AsyncQueryCountSeller(db *sql.DB, total *int, errCount chan error) {
+	sqlCountSeller := `
+		SELECT count(*)
+		FROM db_antar_barang.sellers	
+		WHERE nama like '%' and kode like '%' 
+	`
+
+	totalRec := 0
+	err := db.
+		QueryRow(sqlCountSeller).
+		Scan(
+			&totalRec,
+		)
+	if err != nil {
+		errCount <- err
+		return
+	}
+	*total = totalRec
+	errCount <- nil
+	return
+
+}
+
+func AsyncQuerySearchSeller(db *sql.DB, sqlFindSeller string, sellers *[]model.Seller, resChan chan error) {
+	// customers := []model.Seller{}
+
+	// sqlFindSeller := `
+	// 	SELECT id, nama, hp, kode, password, alamat, status, last_update_by, last_update
+	// 	FROM db_antar_barang.sellers
+	// 	WHERE nama like '%' and kode like '%'
+	// `
+
+	datas, err := db.QueryContext(
+		context.Background(),
+		sqlFindSeller)
+
+	if err != nil {
+		fmt.Println("Error query context ", err.Error())
+		resChan <- err
+		return
+	}
+
+	for datas.Next() {
+		var seller model.Seller
+		err = datas.Scan(
+			&seller.ID,
+			&seller.Nama,
+			&seller.Hp,
+			&seller.Kode,
+			&seller.Password,
+			&seller.Alamat,
+			&seller.Status,
+			&seller.LastUpdateBy,
+			&seller.LastUpdate,
+		)
+		seller.LastUpdateStr = util.DateUnixToString(seller.LastUpdate)
+		if err != nil {
+			fmt.Println("Error fetch data next : ", err.Error())
+		}
+		*sellers = append(*sellers, seller)
+	}
+	resChan <- nil
+	return
+
 }
