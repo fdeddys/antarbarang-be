@@ -11,9 +11,9 @@ type Driver struct {
 	Hp            string                 `json:"hp"`
 	Nama          string                 `json:"nama"`
 	Status        enumerate.StatusRecord `json:"status"`
-	LastUpdateBy  string                 `json:"last_update_by"`
-	LastUpdate    int64                  `json:"last_update"`
-	LastUpdateStr string                 `json:"last_update_str"`
+	LastUpdateBy  string                 `json:"lastUpdateBy"`
+	LastUpdate    int64                  `json:"lastUpdate"`
+	LastUpdateStr string                 `json:"lastUpdateStr"`
 }
 
 // // TableName ...

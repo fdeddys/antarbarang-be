@@ -55,6 +55,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.DriverUpdateHandler).Methods(http.MethodPut)
 	s.HandleFunc("/{driver-id}/status/{active}", handlers.DriverUpdateStatusHandler).Methods(http.MethodPost)
 	s.HandleFunc("/change-password", handlers.DriverChangePasswordHandler).Methods(http.MethodPost)
+	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetDriverPageHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/admin").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetAdminByIdHandler).Methods(http.MethodGet)

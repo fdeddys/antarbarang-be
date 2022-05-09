@@ -150,3 +150,20 @@ func (d *DriverService) ChangePasswordDriver(driver model.Driver) dto.ContentRes
 	result.Contents = msg
 	return result
 }
+
+func (d *DriverService) SearchDriverPage(searchRequestDto dto.SearchRequestDto, page, count int) dto.SearchResultDto {
+
+	var result dto.SearchResultDto
+	data, totalData, err := repository.GetDriverPage(searchRequestDto, page, count)
+
+	if err != nil {
+		result.Error = err.Error()
+		return result
+	}
+	result.Contents = data
+	result.TotalRow = totalData
+	result.Page = page
+	result.Count = len(data)
+
+	return result
+}

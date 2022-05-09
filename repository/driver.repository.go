@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"com.ddabadi.antarbarang/constanta"
@@ -208,4 +211,88 @@ func ChangePasswordDriver(driver model.Driver) (string, error) {
 	}
 	totalData, _ := res.RowsAffected()
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}
+
+func generateQueryDriver(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
+
+	sqlFind := `
+		SELECT id, nama, kode,  hp, alamat, photo, status, last_update_by, last_update
+		FROM drivers		
+		WHERE nama like '%' and kode like '%' 
+	`
+	sqlCount := `
+		SELECT count(*)
+		FROM drivers	
+		WHERE nama like '%' and kode like '%' 
+	`
+	return sqlFind, sqlCount
+
+}
+
+func GetDriverPage(searchRequestDto dto.SearchRequestDto, page, count int) ([]model.Driver, int, error) {
+	db := database.GetConn()
+	var drivers []model.Driver
+	var total int
+
+	sqlFind, sqlCount := generateQueryDriver(searchRequestDto, page, count)
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+	errQuery := make(chan error)
+	errCount := make(chan error)
+
+	go AsyncQuerySearchDriver(db, sqlFind, &drivers, errQuery)
+	go AsyncQueryCount(db, sqlCount, &total, errCount)
+
+	resErrCount := <-errCount
+	resErrQuery := <-errQuery
+
+	wg.Done()
+
+	if resErrCount != nil {
+		log.Println("errr-->", resErrCount)
+		return drivers, 0, resErrCount
+	}
+
+	if resErrQuery != nil {
+		return drivers, 0, resErrQuery
+	}
+
+	return drivers, total, nil
+}
+
+func AsyncQuerySearchDriver(db *sql.DB, sqlFind string, drivers *[]model.Driver, resChan chan error) {
+
+	datas, err := db.QueryContext(
+		context.Background(),
+		sqlFind)
+
+	if err != nil {
+		fmt.Println("Error query context ", err.Error())
+		resChan <- err
+		return
+	}
+
+	for datas.Next() {
+		var driver model.Driver
+		err = datas.Scan(
+			&driver.ID,
+			&driver.Nama,
+			&driver.Kode,
+			&driver.Hp,
+			&driver.Alamat,
+			&driver.Photo,
+			&driver.Status,
+			&driver.LastUpdateBy,
+			&driver.LastUpdate,
+		)
+		driver.LastUpdateStr = util.DateUnixToString(driver.LastUpdate)
+		if err != nil {
+			fmt.Println("Error fetch data next : ", err.Error())
+		}
+		*drivers = append(*drivers, driver)
+	}
+	resChan <- nil
+
 }
