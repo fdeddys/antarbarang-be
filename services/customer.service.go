@@ -122,3 +122,20 @@ func (c *CustomerService) UpdateStatusCustomerActive(customerId int64, active bo
 	result.Contents = msg
 	return result
 }
+
+func (s *CustomerService) SearchCustomerPage(searchRequestDto dto.SearchRequestDto, page, count int) dto.SearchResultDto {
+
+	var result dto.SearchResultDto
+	data, totalData, err := repository.GetCustomerPage(searchRequestDto, page, count)
+
+	if err != nil {
+		result.Error = err.Error()
+		return result
+	}
+	result.Contents = data
+	result.TotalRow = totalData
+	result.Page = page
+	result.Count = len(data)
+
+	return result
+}

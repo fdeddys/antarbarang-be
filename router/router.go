@@ -45,6 +45,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.CustomerUpdateHandler).Methods(http.MethodPut)
 	s.HandleFunc("/{customer-id}/status/{active}", handlers.CustomerUpdateStatusHandler).Methods(http.MethodPost)
+	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetCustomerPageHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/driver").Subrouter()
 	s.HandleFunc("/{id:[0-9]+}", handlers.GetDriverByIdHandler).Methods(http.MethodGet)

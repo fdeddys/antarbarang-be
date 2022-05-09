@@ -8,3 +8,5 @@ set REDIS_HOST=localhost
 set REDIS_PORT=6379
 
 go run main.go
+
+@REM env GOOS=linux GOARCH=amd64 go build -o antar_be

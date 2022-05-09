@@ -198,19 +198,19 @@ func ChangePasswordSeller(seller model.Seller) (string, error) {
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
 
-func generateQuery(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
+func generateQuerySeller(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
 
-	sqlFindSeller := `
-		SELECT id, nama, hp, kode, password, alamat, status, last_update_by, last_update
+	sqlFind := `
+		SELECT id, nama, hp, kode,  alamat, status, last_update_by, last_update
 		FROM db_antar_barang.sellers	
 		WHERE nama like '%' and kode like '%' 
 	`
-	sqlCountSeller := `
+	sqlCount := `
 		SELECT count(*)
 		FROM db_antar_barang.sellers	
 		WHERE nama like '%' and kode like '%' 
 	`
-	return sqlFindSeller, sqlCountSeller
+	return sqlFind, sqlCount
 
 }
 
@@ -219,7 +219,7 @@ func GetSellerPage(searchRequestDto dto.SearchRequestDto, page, count int) ([]mo
 	var sellers []model.Seller
 	var total int
 
-	sqlFindSeller, sqlCountSeller = generateQuery(searchRequestDto, page, count)
+	sqlFind, sqlCount := generateQuerySeller(searchRequestDto, page, count)
 
 	wg := sync.WaitGroup{}
 
@@ -227,8 +227,8 @@ func GetSellerPage(searchRequestDto dto.SearchRequestDto, page, count int) ([]mo
 	errQuery := make(chan error)
 	errCount := make(chan error)
 
-	go AsyncQuerySearchSeller(db, sqlFindSeller, &sellers, errQuery)
-	go AsyncQueryCountSeller(db, sqlCountSeller, &total, errCount)
+	go AsyncQuerySearchSeller(db, sqlFind, &sellers, errQuery)
+	go AsyncQueryCount(db, sqlCount, &total, errCount)
 
 	resErrCount := <-errCount
 	resErrQuery := <-errQuery
@@ -247,37 +247,7 @@ func GetSellerPage(searchRequestDto dto.SearchRequestDto, page, count int) ([]mo
 	return sellers, total, nil
 }
 
-func AsyncQueryCountSeller(db *sql.DB, total *int, errCount chan error) {
-	sqlCountSeller := `
-		SELECT count(*)
-		FROM db_antar_barang.sellers	
-		WHERE nama like '%' and kode like '%' 
-	`
-
-	totalRec := 0
-	err := db.
-		QueryRow(sqlCountSeller).
-		Scan(
-			&totalRec,
-		)
-	if err != nil {
-		errCount <- err
-		return
-	}
-	*total = totalRec
-	errCount <- nil
-	return
-
-}
-
 func AsyncQuerySearchSeller(db *sql.DB, sqlFindSeller string, sellers *[]model.Seller, resChan chan error) {
-	// customers := []model.Seller{}
-
-	// sqlFindSeller := `
-	// 	SELECT id, nama, hp, kode, password, alamat, status, last_update_by, last_update
-	// 	FROM db_antar_barang.sellers
-	// 	WHERE nama like '%' and kode like '%'
-	// `
 
 	datas, err := db.QueryContext(
 		context.Background(),
@@ -296,7 +266,6 @@ func AsyncQuerySearchSeller(db *sql.DB, sqlFindSeller string, sellers *[]model.S
 			&seller.Nama,
 			&seller.Hp,
 			&seller.Kode,
-			&seller.Password,
 			&seller.Alamat,
 			&seller.Status,
 			&seller.LastUpdateBy,
@@ -309,6 +278,5 @@ func AsyncQuerySearchSeller(db *sql.DB, sqlFindSeller string, sellers *[]model.S
 		*sellers = append(*sellers, seller)
 	}
 	resChan <- nil
-	return
 
 }
