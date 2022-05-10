@@ -27,4 +27,6 @@ vendor/
 .idea/workspace.xml
 
 /start.sh
+/compile_cloud.sh
 *.bat
+*.sh
