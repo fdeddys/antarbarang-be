@@ -5,6 +5,7 @@ import "com.ddabadi.antarbarang/enumerate"
 type Transaksi struct {
 	ID                  int64                     `json:"id"`
 	TransaksiDate       int64                     `json:"transaksiDate"`
+	TransaksiDateStr    string                    `json:"transaksiDateStr"`
 	TanggalRequestAntar int64                     `json:"tanggalRequestAntar"`
 	JamRequestAntar     string                    `json:"jamRequestAntar"`
 	NamaProduct         string                    `json:"namaProduct"`
@@ -17,12 +18,16 @@ type Transaksi struct {
 	TanggalSampai       int64                     `json:"tanggalSampai"`
 	TanggalSampaiStr    string                    `json:"tanggalSampaiStr" `
 	IdSeller            int64                     `json:"idSeller"`
+	SellerName          string                    `json:"SellerName"`
 	IdDriver            int64                     `json:"idDriver"`
+	DriverName          string                    `json:"DriverName"`
 	IdCustomer          int64                     `json:"idCustomer"`
+	CustomerName        string                    `json:"CustomerName"`
 	IdAdmin             int64                     `json:"idAdmin"`
 	Status              enumerate.StatusTransaksi `json:"status"`
-	LastUpdateBy        string                    `json:"last_update_by"`
-	LastUpdate          int64                     `json:"last_update"`
+	LastUpdateBy        string                    `json:"lastUpdateBy"`
+	LastUpdate          int64                     `json:"lastUpdate"`
+	LastUpdateStr       string                    `json:"lastUpdateStr"`
 }
 
 // TableName ...

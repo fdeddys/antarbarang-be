@@ -7,8 +7,9 @@ const (
 	ON_PROCCESS
 	ON_THE_WAY
 	DONE
+	CANCEL
 )
 
 func (s StatusTransaksi) String() string {
-	return [...]string{"NEW", "ON_PROCCESS", "ON_THE_WAY", "DONE"}[s]
+	return [...]string{"NEW", "ON_PROCCESS", "ON_THE_WAY", "DONE", "CANCEL"}[s]
 }
