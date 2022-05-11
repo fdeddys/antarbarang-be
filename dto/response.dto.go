@@ -26,8 +26,9 @@ type LoginResponseDto struct {
 }
 
 type SearchRequestDto struct {
-	Kode string `json:"kode"`
-	Nama string `json:"nama"`
+	Kode     string `json:"kode"`
+	Nama     string `json:"nama"`
+	SellerId string `json:"sellerId"`
 }
 
 type SearchResultDto struct {
@@ -36,4 +37,11 @@ type SearchResultDto struct {
 	Count    int         `json:"count"`
 	Contents interface{} `json:"contents"`
 	Error    string      `json:"error"`
+}
+
+type SearchTransaksiRequestDto struct {
+	SellerName   string `json:"sellerName"`
+	DriverName   string `json:"driverName"`
+	CustomerName string `json:"customerName"`
+	Status       string `json:"status"`
 }

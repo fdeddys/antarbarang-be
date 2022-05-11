@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"time"
 
@@ -221,6 +222,18 @@ func UpdateStatusCustomer(idCustomer int64, statusCustomer interface{}) (string,
 
 func generateQueryCustomer(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
 
+	var kriteriaKode = "%"
+	if searchRequestDto.Kode != "" {
+		kriteriaKode += searchRequestDto.Kode + "%"
+	}
+
+	searchSellerID := false
+	sellerId := int64(0)
+	if len(searchRequestDto.SellerId) > 0 {
+		searchSellerID = true
+		sellerId, _ = strconv.ParseInt(searchRequestDto.SellerId, 10, 64)
+	}
+
 	sqlFind := `
 		SELECT c.id, c.seller_id , 
 			case when c.seller_id IS NULL or c.seller_id = ''
@@ -228,16 +241,25 @@ func generateQueryCustomer(searchRequestDto dto.SearchRequestDto, page, limit in
 				else s.nama 
 			end as seller ,
 			c.nama, c.hp, c.alamat, c.coordinate, c.status, c.last_update_by, c.last_update
-		FROM customers c
+		FROM customers c `
+	where := `
 		left join sellers s on c.seller_id = s.id		
-		WHERE c.nama like '%'
+		WHERE ( c.nama like '%v' ) and ( ( not %v ) or (seller_id = %v) ) 
 		ORDER BY c.nama  
 	`
+	limitQuery := `
+		LIMIT %v, %v
+	`
+
+	sqlFind = fmt.Sprintf(sqlFind+where+limitQuery, kriteriaKode, searchSellerID, sellerId, ((page - 1) * limit), limit)
+	fmt.Println("Query Find = ", sqlFind)
+
 	sqlCount := `
 		SELECT count(*)
-		FROM customers	
-		WHERE nama like '%'  
-	`
+		FROM customers c `
+	sqlCount = fmt.Sprintf(sqlCount+where, kriteriaKode, searchSellerID, sellerId)
+	fmt.Println("Query Count = ", sqlCount)
+
 	return sqlFind, sqlCount
 
 }

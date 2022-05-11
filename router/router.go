@@ -70,6 +70,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/asign-driver", handlers.OnProccessHandler).Methods(http.MethodPost)
 	s.HandleFunc("/on-the-way", handlers.OnTheWayHandler).Methods(http.MethodPost)
 	s.HandleFunc("/done", handlers.DoneProcessHandler).Methods(http.MethodPost)
+	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetTransaksiPageHandler).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/parameter").Subrouter()
 	s.HandleFunc("/byname/{paramname}", handlers.ParamByNameHandler).Methods(http.MethodGet)

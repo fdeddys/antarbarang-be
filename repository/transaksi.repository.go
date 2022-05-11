@@ -2,7 +2,12 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
+	"log"
+	"strconv"
+	"sync"
 	"time"
 
 	"com.ddabadi.antarbarang/database"
@@ -287,4 +292,175 @@ func DoneRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	}
 
 	return transaksi, nil
+}
+
+func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequestDto, page, limit int) (string, string) {
+
+	var kriteriaSeller = "%"
+	if searchTransaksiRequestDto.SellerName != "" {
+		kriteriaSeller += searchTransaksiRequestDto.SellerName + "%"
+	}
+	var kriteriaDriver = "%"
+	if searchTransaksiRequestDto.DriverName != "" {
+		kriteriaDriver += searchTransaksiRequestDto.DriverName + "%"
+	}
+	var kriteriaCustomer = "%"
+	if searchTransaksiRequestDto.CustomerName != "" {
+		kriteriaCustomer += searchTransaksiRequestDto.CustomerName + "%"
+	}
+	searchStatus := false
+	status := int64(0)
+	if len(searchTransaksiRequestDto.Status) > 0 {
+		searchStatus = true
+		status, _ = strconv.ParseInt(searchTransaksiRequestDto.Status, 10, 64)
+	}
+
+	sqlFind := `
+		SELECT  t.id, 
+			transaksi_date, 
+			tanggal_request_antar, 
+			jam_request_antar, 
+			nama_product, 
+			t.status, 
+			coordinate_tujuan, 
+			keterangan, 
+			photo_ambil, 
+			tanggal_ambil, 
+			photo_sampai, 
+			tanggal_sampai, 
+			id_seller, 
+			s.nama , 
+			id_driver, 
+			d.nama , 
+			id_customer, 
+			c.nama , 
+			id_admin, 
+			t.last_update_by, 
+			t.last_update
+		FROM transaksi t
+		left join sellers s on t.id_seller  = s.id
+		left join drivers d on t.id_driver = d.id 
+		left JOIN customers c on t.id_customer = c.id  `
+	where := `
+		WHERE ( ( c.nama like '%v' ) OR ( s.nama  like '%v' ) OR ( d.nama  like '%v' ) )
+		AND	  ( ( not %v  ) or (t.status  = %v ) )
+		ORDER BY t.transaksi_date DESC   
+	`
+	limitQuery := `
+		LIMIT %v, %v
+	`
+
+	sqlFind = fmt.Sprintf(
+		sqlFind+where+limitQuery,
+		kriteriaCustomer,
+		kriteriaSeller,
+		kriteriaDriver,
+		searchStatus,
+		status,
+		((page - 1) * limit), limit)
+	fmt.Println("Query Find = ", sqlFind)
+
+	sqlCount := `
+		SELECT count(*)
+		FROM transaksi t
+		left join sellers s on t.id_seller  = s.id
+		left join drivers d on t.id_driver = d.id 
+		left JOIN customers c on t.id_customer = c.id   `
+	sqlCount = fmt.Sprintf(
+		sqlCount+where,
+		kriteriaCustomer,
+		kriteriaSeller,
+		kriteriaDriver,
+		searchStatus,
+		status,
+	)
+	fmt.Println("Query Count = ", sqlCount)
+
+	return sqlFind, sqlCount
+
+}
+
+func GetTransaksiPage(searchRequestDto dto.SearchTransaksiRequestDto, page, count int) ([]model.Transaksi, int, error) {
+	db := database.GetConn()
+	var transaksis []model.Transaksi
+	var total int
+
+	sqlFind, sqlCount := generateQueryTransaksi(searchRequestDto, page, count)
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+	errQuery := make(chan error)
+	errCount := make(chan error)
+
+	go AsyncQuerySearchTransaksi(db, sqlFind, &transaksis, errQuery)
+	go AsyncQueryCount(db, sqlCount, &total, errCount)
+
+	resErrCount := <-errCount
+	resErrQuery := <-errQuery
+
+	wg.Done()
+
+	if resErrCount != nil {
+		log.Println("errr-->", resErrCount)
+		return transaksis, 0, resErrCount
+	}
+
+	if resErrQuery != nil {
+		return transaksis, 0, resErrQuery
+	}
+
+	return transaksis, total, nil
+}
+
+func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.Transaksi, resChan chan error) {
+
+	datas, err := db.QueryContext(
+		context.Background(),
+		sqlFind)
+
+	if err != nil {
+		fmt.Println("Error query context ", err.Error())
+		resChan <- err
+		return
+	}
+
+	for datas.Next() {
+		var transaksi model.Transaksi
+		err = datas.Scan(
+			&transaksi.ID,
+			&transaksi.TransaksiDate,
+			&transaksi.TanggalRequestAntar,
+			&transaksi.JamRequestAntar,
+			&transaksi.NamaProduct,
+			&transaksi.Status,
+			&transaksi.CoordinateTujuan,
+			&transaksi.Keterangan,
+			&transaksi.PhotoAmbil,
+			&transaksi.TanggalAmbil,
+			&transaksi.PhotoSampai,
+			&transaksi.TanggalSampai,
+			&transaksi.IdSeller,
+			&transaksi.SellerName,
+			&transaksi.IdDriver,
+			&transaksi.DriverName,
+			&transaksi.IdCustomer,
+			&transaksi.CustomerName,
+			&transaksi.IdAdmin,
+			&transaksi.LastUpdateBy,
+			&transaksi.LastUpdate,
+		)
+		transaksi.TransaksiDateStr = util.DateUnixToString(transaksi.TransaksiDate)
+		transaksi.LastUpdateStr = util.DateUnixToString(transaksi.LastUpdate)
+		transaksi.TanggalAmbilStr = util.DateUnixToString(transaksi.TanggalAmbil)
+		transaksi.TanggalSampaiStr = util.DateUnixToString(transaksi.TanggalSampai)
+		transaksi.TanggalRequestAntarStr = util.DateUnixToString(transaksi.TanggalRequestAntar)
+		if err != nil {
+			fmt.Println("Error fetch data next : ", err.Error())
+		}
+		*transaksis = append(*transaksis, transaksi)
+	}
+	resChan <- nil
+	return
+
 }
