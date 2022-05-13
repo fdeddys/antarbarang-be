@@ -32,6 +32,6 @@ type Transaksi struct {
 }
 
 // TableName ...
-func (t *Transaksi) TableName() string {
-	return "public.transaction_pickup"
-}
+// func (t *Transaksi) TableName() string {
+// 	return "public.transaction_pickup"
+// }

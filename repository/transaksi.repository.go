@@ -41,6 +41,7 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.LastUpdate = util.GetCurrTimeUnix()
 	transaksi.LastUpdateBy = dto.CurrUser
 
+	fmt.Println("Transaksi = ", transaksi)
 	sqlStatement := `
 		INSERT INTO transaksi
 			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update)
@@ -324,17 +325,17 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 			t.status, 
 			coordinate_tujuan, 
 			keterangan, 
-			photo_ambil, 
-			tanggal_ambil, 
-			photo_sampai, 
-			tanggal_sampai, 
+			IFNULL(photo_ambil,""), 
+			IFNULL(tanggal_ambil,0), 
+			IFNULL(photo_sampai,""), 
+			IFNULL(tanggal_sampai,0), 
 			id_seller, 
-			s.nama , 
-			id_driver, 
-			d.nama , 
+			IFNULL(s.nama,"") , 
+			IFNULL(id_driver,0), 
+			IFNULL(d.nama,"") , 
 			id_customer, 
-			c.nama , 
-			id_admin, 
+			IFNULL(c.nama,"") , 
+			IFNULL(id_admin,0), 
 			t.last_update_by, 
 			t.last_update
 		FROM transaksi t
