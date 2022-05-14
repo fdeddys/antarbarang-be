@@ -301,10 +301,10 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 	if searchTransaksiRequestDto.SellerName != "" {
 		kriteriaSeller += searchTransaksiRequestDto.SellerName + "%"
 	}
-	var kriteriaDriver = "%"
-	if searchTransaksiRequestDto.DriverName != "" {
-		kriteriaDriver += searchTransaksiRequestDto.DriverName + "%"
-	}
+	// var kriteriaDriver = "%"
+	// if searchTransaksiRequestDto.DriverName != "" {
+	// 	kriteriaDriver += searchTransaksiRequestDto.DriverName + "%"
+	// }
 	var kriteriaCustomer = "%"
 	if searchTransaksiRequestDto.CustomerName != "" {
 		kriteriaCustomer += searchTransaksiRequestDto.CustomerName + "%"
@@ -315,6 +315,9 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 		searchStatus = true
 		status, _ = strconv.ParseInt(searchTransaksiRequestDto.Status, 10, 64)
 	}
+
+	tgl1 := searchTransaksiRequestDto.Tgl1
+	tgl2 := searchTransaksiRequestDto.Tgl2
 
 	sqlFind := `
 		SELECT  t.id, 
@@ -343,21 +346,25 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 		left join drivers d on t.id_driver = d.id 
 		left JOIN customers c on t.id_customer = c.id  `
 	where := `
-		WHERE ( ( c.nama like '%v' ) OR ( s.nama  like '%v' ) OR ( d.nama  like '%v' ) )
+		WHERE ( c.nama like '%v' ) 
+		AND   ( s.nama  like '%v' ) 
 		AND	  ( ( not %v  ) or (t.status  = %v ) )
+		AND   FROM_UNIXTIME(transaksi_date) BETWEEN  '%v 00:00:00' and  '%v 23:59:59'
 		ORDER BY t.transaksi_date DESC   
 	`
 	limitQuery := `
 		LIMIT %v, %v
 	`
 
+	// kriteriaDriver,
 	sqlFind = fmt.Sprintf(
 		sqlFind+where+limitQuery,
 		kriteriaCustomer,
 		kriteriaSeller,
-		kriteriaDriver,
 		searchStatus,
 		status,
+		tgl1,
+		tgl2,
 		((page - 1) * limit), limit)
 	fmt.Println("Query Find = ", sqlFind)
 
@@ -371,10 +378,12 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 		sqlCount+where,
 		kriteriaCustomer,
 		kriteriaSeller,
-		kriteriaDriver,
 		searchStatus,
 		status,
+		tgl1,
+		tgl2,
 	)
+	// kriteriaDriver,
 	fmt.Println("Query Count = ", sqlCount)
 
 	return sqlFind, sqlCount

@@ -15,8 +15,11 @@ func DateTimeUnixToString(intTime int64) string {
 }
 
 func DateUnixToString(intTime int64) string {
-	t := time.Unix(intTime, 0)
-	layout := "02-Jan-2006"
 
-	return t.Format(layout)
+	layout := "02-Jan-2006"
+	// tim, _ := time.Parse(layout, "Mon, 23 Dec 2019 18:52:45 GMT")
+
+	t := time.Unix(intTime, 0)
+
+	return t.UTC().Format(layout)
 }
