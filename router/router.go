@@ -24,7 +24,7 @@ func InitRouter() *mux.Router {
 
 	r := mux.NewRouter()
 	r.Use(loggingMiddleware)
-	r.Use(cekToken)
+	// r.Use(cekToken)
 	r.Use(mux.CORSMethodMiddleware(r))
 	pathPref := "/api"
 
@@ -67,7 +67,7 @@ func InitRouter() *mux.Router {
 
 	s = r.PathPrefix(pathPref + "/transaksi").Subrouter()
 	s.HandleFunc("/new", handlers.NewTransaksiHandler).Methods(http.MethodPost)
-	s.HandleFunc("/asign-driver", handlers.OnProccessHandler).Methods(http.MethodPost)
+	s.HandleFunc("/on-proccess", handlers.OnProccessHandler).Methods(http.MethodPost)
 	s.HandleFunc("/on-the-way", handlers.OnTheWayHandler).Methods(http.MethodPost)
 	s.HandleFunc("/done", handlers.DoneProcessHandler).Methods(http.MethodPost)
 	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetTransaksiPageHandler).Methods(http.MethodPost)
@@ -136,8 +136,15 @@ func cekToken(next http.Handler) http.Handler {
 		// dto.CurrUser = "system"
 		if tokenString == "" {
 			// Write an error and stop the handler chain
-			log.Printf("Forbidden user ")
-			next.ServeHTTP(w, r)
+			// log.Printf("Forbidden user ")
+			// next.ServeHTTP(w, r)
+			res.ErrCode = constanta.ERR_CODE_21
+			res.ErrDesc = constanta.ERR_CODE_21__INVALID_AUTH
+
+			result, _ := json.Marshal(res)
+			w.Header().Set("content-type", "application-json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(result)
 			return
 		}
 
@@ -150,7 +157,7 @@ func cekToken(next http.Handler) http.Handler {
 			w.Header().Set("content-type", "application-json")
 			w.WriteHeader(http.StatusOK)
 			w.Write(result)
-			next.ServeHTTP(w, r)
+			// next.ServeHTTP(w, r)
 			return
 		}
 

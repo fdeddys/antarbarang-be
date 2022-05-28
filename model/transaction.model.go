@@ -14,18 +14,23 @@ type Transaksi struct {
 	Keterangan             string                    `json:"keterangan"`
 	PhotoAmbil             string                    `json:"photoAmbil"`
 	TanggalAmbil           int64                     `json:"tanggalAmbil"`
-	TanggalAmbilStr        string                    `json:"jamAmbil"`
+	TanggalAmbilStr        string                    `json:"tanggalAmbilStr"`
 	PhotoSampai            string                    `json:"photoSampai"`
 	TanggalSampai          int64                     `json:"tanggalSampai"`
 	TanggalSampaiStr       string                    `json:"tanggalSampaiStr" `
 	IdSeller               int64                     `json:"idSeller"`
 	SellerName             string                    `json:"sellerName"`
+	SellerAddress          string                    `json:"sellerAddress"`
+	SellerHp               string                    `json:"sellerHp"`
 	IdDriver               int64                     `json:"idDriver"`
 	DriverName             string                    `json:"driverName"`
 	IdCustomer             int64                     `json:"idCustomer"`
 	CustomerName           string                    `json:"customerName"`
+	CustomerAddress        string                    `json:"customerAddress"`
+	CustomerHp             string                    `json:"customerHp"`
 	IdAdmin                int64                     `json:"idAdmin"`
 	Status                 enumerate.StatusTransaksi `json:"status"`
+	StatusName             string                    `json:"statusName"`
 	LastUpdateBy           string                    `json:"lastUpdateBy"`
 	LastUpdate             int64                     `json:"lastUpdate"`
 	LastUpdateStr          string                    `json:"lastUpdateStr"`

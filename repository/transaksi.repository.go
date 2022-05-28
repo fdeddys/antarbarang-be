@@ -152,7 +152,7 @@ func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) 
 
 }
 
-func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
+func OnProccessRepo(transaksi model.Transaksi) (int, error) {
 	db := database.GetConn()
 
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.ON_PROCCESS)
@@ -163,7 +163,6 @@ func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 		UPDATE transaksi
 		SET
 			id_driver = ?,
-			id_admin = ?,
 			status = ?,
 			last_update_by = ?,
 			last_update = ?
@@ -171,21 +170,22 @@ func OnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 			id = ?
 	`
 
-	_, err := db.Exec(
+	res, err := db.Exec(
 		sqlStatement,
 		transaksi.IdDriver,
-		transaksi.IdAdmin,
 		transaksi.Status,
 		transaksi.LastUpdateBy,
 		transaksi.LastUpdate,
 		transaksi.ID,
 	)
 
+	totalRec, _ := res.RowsAffected()
+	fmt.Println("res update =>", totalRec)
 	if err != nil {
-		return transaksi, errors.New("Error transaksi : " + err.Error())
+		return 0, errors.New("Error transaksi : " + err.Error())
 	}
 
-	return transaksi, nil
+	return int(totalRec), nil
 }
 
 func UpdateOnProccessRepo(transaksi model.Transaksi) (model.Transaksi, error) {
@@ -309,11 +309,25 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 	if searchTransaksiRequestDto.CustomerName != "" {
 		kriteriaCustomer += searchTransaksiRequestDto.CustomerName + "%"
 	}
+	// searchStatus := false
+	// status := int64(0)
+	// if len(searchTransaksiRequestDto.Status) > 0 {
+	// 	searchStatus = true
+	// 	status, _ = strconv.ParseInt(searchTransaksiRequestDto.Status, 10, 64)
+	// }
+
 	searchStatus := false
-	status := int64(0)
+	status := "0"
 	if len(searchTransaksiRequestDto.Status) > 0 {
 		searchStatus = true
-		status, _ = strconv.ParseInt(searchTransaksiRequestDto.Status, 10, 64)
+		status = searchTransaksiRequestDto.Status
+	}
+
+	searchDriverID := false
+	driverID := int64(0)
+	if len(searchTransaksiRequestDto.DriverID) > 0 {
+		searchDriverID = true
+		driverID, _ = strconv.ParseInt(searchTransaksiRequestDto.DriverID, 10, 64)
 	}
 
 	tgl1 := searchTransaksiRequestDto.Tgl1
@@ -326,6 +340,14 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 			jam_request_antar, 
 			nama_product, 
 			t.status, 
+			CASE
+				WHEN t.status = 0 THEN "NEW"
+				WHEN t.status = 1 THEN "ON_PROCCESS"
+				WHEN t.status = 2 THEN "ON_THE_WAY"
+				WHEN t.status = 3 THEN "DONE"
+				WHEN t.status = 4 THEN "CANCEL"
+				ELSE "UNKNOWN"
+			END,
 			coordinate_tujuan, 
 			keterangan, 
 			IFNULL(photo_ambil,""), 
@@ -334,10 +356,14 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 			IFNULL(tanggal_sampai,0), 
 			id_seller, 
 			IFNULL(s.nama,"") , 
+			IFNULL(s.alamat,"") , 
+			IFNULL(s.hp,"") , 
 			IFNULL(id_driver,0), 
 			IFNULL(d.nama,"") , 
 			id_customer, 
 			IFNULL(c.nama,"") , 
+			IFNULL(c.alamat,"") , 
+			IFNULL(c.hp,"") , 
 			IFNULL(id_admin,0), 
 			t.last_update_by, 
 			t.last_update
@@ -348,14 +374,14 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 	where := `
 		WHERE ( c.nama like '%v' ) 
 		AND   ( s.nama  like '%v' ) 
-		AND	  ( ( not %v  ) or (t.status  = %v ) )
+		AND	  ( ( not %v  ) or (t.status  in (%v) ) )
+		AND	  ( ( not %v  ) or (t.id_driver  = %v ) )
 		AND   FROM_UNIXTIME(transaksi_date) BETWEEN  '%v 00:00:00' and  '%v 23:59:59'
 		ORDER BY t.transaksi_date DESC   
 	`
 	limitQuery := `
 		LIMIT %v, %v
 	`
-
 	// kriteriaDriver,
 	sqlFind = fmt.Sprintf(
 		sqlFind+where+limitQuery,
@@ -363,6 +389,8 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 		kriteriaSeller,
 		searchStatus,
 		status,
+		searchDriverID,
+		driverID,
 		tgl1,
 		tgl2,
 		((page - 1) * limit), limit)
@@ -425,6 +453,8 @@ func GetTransaksiPage(searchRequestDto dto.SearchTransaksiRequestDto, page, coun
 
 func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.Transaksi, resChan chan error) {
 
+	fmt.Println("Query search : ", sqlFind)
+
 	datas, err := db.QueryContext(
 		context.Background(),
 		sqlFind)
@@ -444,6 +474,7 @@ func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.T
 			&transaksi.JamRequestAntar,
 			&transaksi.NamaProduct,
 			&transaksi.Status,
+			&transaksi.StatusName,
 			&transaksi.CoordinateTujuan,
 			&transaksi.Keterangan,
 			&transaksi.PhotoAmbil,
@@ -452,10 +483,14 @@ func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.T
 			&transaksi.TanggalSampai,
 			&transaksi.IdSeller,
 			&transaksi.SellerName,
+			&transaksi.SellerAddress,
+			&transaksi.SellerHp,
 			&transaksi.IdDriver,
 			&transaksi.DriverName,
 			&transaksi.IdCustomer,
 			&transaksi.CustomerName,
+			&transaksi.CustomerAddress,
+			&transaksi.CustomerHp,
 			&transaksi.IdAdmin,
 			&transaksi.LastUpdateBy,
 			&transaksi.LastUpdate,

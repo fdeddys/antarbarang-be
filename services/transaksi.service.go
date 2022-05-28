@@ -33,14 +33,14 @@ func (t *TransaksiService) OnProccess(transaksi model.Transaksi) dto.ContentResp
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	lastInsertId, err := repository.OnProccessRepo(transaksi)
+	updatedRecord, err := repository.OnProccessRepo(transaksi)
 	if err != nil {
 		result.Contents = err.Error()
 		result.ErrCode = constanta.ERR_CODE_10
 		result.ErrDesc = constanta.ERR_CODE_10_FAILED_INSERT_DB
 		return result
 	}
-	result.Contents = lastInsertId
+	result.Contents = updatedRecord
 	return result
 }
 

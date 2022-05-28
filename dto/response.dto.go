@@ -46,4 +46,5 @@ type SearchTransaksiRequestDto struct {
 	Status       string `json:"status"`
 	Tgl1         string `json:"tgl1"`
 	Tgl2         string `json:"tgl2"`
+	DriverID     string `json:"driverId"`
 }
