@@ -7,6 +7,11 @@ func GetCurrTimeUnix() int64 {
 	return time.Now().Unix()
 }
 
+func GetCurrDate() time.Time {
+
+	return time.Now()
+}
+
 func DateTimeUnixToString(intTime int64) string {
 	t := time.Unix(intTime, 0)
 	layout := "02-Jan-2006- 15:04:05"

@@ -1,22 +1,25 @@
 package model
 
-import "com.ddabadi.antarbarang/enumerate"
+import (
+	"com.ddabadi.antarbarang/enumerate"
+)
 
 type Transaksi struct {
 	ID                     int64                     `json:"id"`
-	TransaksiDate          int64                     `json:"transaksiDate"`
+	TransaksiDate          string                    `json:"transaksiDate"`
 	TransaksiDateStr       string                    `json:"transaksiDateStr"`
-	TanggalRequestAntar    int64                     `json:"tanggalRequestAntar"`
+	TanggalRequestAntar    string                    `json:"tanggalRequestAntar"`
 	TanggalRequestAntarStr string                    `json:"tanggalRequestAntarStr"`
+	TanggalOnProccess      string                    `json:"tanggalOnProccess"`
 	JamRequestAntar        string                    `json:"jamRequestAntar"`
 	NamaProduct            string                    `json:"namaProduct"`
 	CoordinateTujuan       string                    `json:"coordinateTujuan"`
 	Keterangan             string                    `json:"keterangan"`
 	PhotoAmbil             string                    `json:"photoAmbil"`
-	TanggalAmbil           int64                     `json:"tanggalAmbil"`
+	TanggalAmbil           string                    `json:"tanggalAmbil"`
 	TanggalAmbilStr        string                    `json:"tanggalAmbilStr"`
 	PhotoSampai            string                    `json:"photoSampai"`
-	TanggalSampai          int64                     `json:"tanggalSampai"`
+	TanggalSampai          string                    `json:"tanggalSampai"`
 	TanggalSampaiStr       string                    `json:"tanggalSampaiStr" `
 	IdSeller               int64                     `json:"idSeller"`
 	SellerName             string                    `json:"sellerName"`
@@ -32,7 +35,7 @@ type Transaksi struct {
 	Status                 enumerate.StatusTransaksi `json:"status"`
 	StatusName             string                    `json:"statusName"`
 	LastUpdateBy           string                    `json:"lastUpdateBy"`
-	LastUpdate             int64                     `json:"lastUpdate"`
+	LastUpdate             string                    `json:"lastUpdate"`
 	LastUpdateStr          string                    `json:"lastUpdateStr"`
 }
 

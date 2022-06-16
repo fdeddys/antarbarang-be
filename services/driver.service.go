@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"com.ddabadi.antarbarang/constanta"
 	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/enumerate"
@@ -61,34 +63,37 @@ func (d *DriverService) GetDriverByKode(kode string) dto.ContentResponse {
 	return result
 }
 
-func (d *DriverService) LoginDriverByKode(kode, password string) dto.ContentResponse {
-	var result dto.ContentResponse
+func (d *DriverService) LoginDriverByKode(kode, password string) dto.LoginResponseDto {
+	var result dto.LoginResponseDto
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	seller, err := repository.LoginDriverByCode(kode)
+	driver, err := repository.LoginDriverByCode(kode)
 	if err != nil {
 		result.ErrCode = constanta.ERR_CODE_11
 		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
-		result.Contents = err.Error()
+		// result.Contents = err.Error()
+		result.Token = ""
 		return result
 	}
 
-	if seller.Status != enumerate.ACTIVE {
+	if driver.Status != enumerate.ACTIVE {
 		result.ErrCode = constanta.ERR_CODE_20
 		result.ErrDesc = constanta.ERR_CODE_20_LOGIN_FAILED
-		result.Contents = "User status not active !"
+		// result.Contents = "User status not active !"
+		result.Token = ""
 		return result
 	}
 
-	if seller.Password != password {
+	if driver.Password != password {
 		result.ErrCode = constanta.ERR_CODE_20
 		result.ErrDesc = constanta.ERR_CODE_20_LOGIN_FAILED
-		result.Contents = "Password not match !"
+		// result.Contents = "Password not match !"
+		result.Token = ""
 		return result
 	}
 
-	result.Contents = "Login success"
+	result.Token = generateToken(driver.Nama, driver.ID)
 	return result
 }
 
@@ -133,13 +138,29 @@ func (d *DriverService) UpdateStatusDriverActive(driverId int64, active bool) dt
 	return result
 }
 
-func (d *DriverService) ChangePasswordDriver(driver model.Driver) dto.ContentResponse {
+func (d *DriverService) ChangePasswordDriver(changeReqModel dto.ChangePasswordRequestDto) dto.ContentResponse {
 
 	var result dto.ContentResponse
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
-	msg, err := repository.ChangePasswordDriver(driver)
+	password, errDr := repository.FindPasswordDriverById(changeReqModel.DriverId)
+	if errDr != nil {
+		result.Contents = errDr.Error()
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
+		return result
+	}
+
+	fmt.Println("old :", changeReqModel.OldPassword, ":new pass:", password)
+	if changeReqModel.OldPassword != password {
+		result.Contents = "old password not match !"
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
+		return result
+	}
+
+	msg, err := repository.ChangePasswordDriver(changeReqModel)
 
 	if err != nil {
 		result.Contents = err.Error()

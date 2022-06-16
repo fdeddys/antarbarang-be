@@ -191,7 +191,7 @@ func UpdateStatusDriver(idDriver int64, statusDriver interface{}) (string, error
 	return fmt.Sprintf("update data success : %v record's!", totalData), err
 }
 
-func ChangePasswordDriver(driver model.Driver) (string, error) {
+func ChangePasswordDriver(changePassModel dto.ChangePasswordRequestDto) (string, error) {
 
 	currTime := util.GetCurrTimeUnix()
 	db := database.GetConn()
@@ -201,10 +201,10 @@ func ChangePasswordDriver(driver model.Driver) (string, error) {
 		SET password= ?,  last_update_by= ?, last_update= ?
 		WHERE id = ?;
 	`
-
+	fmt.Println(sqlStatement, " [change pass] ", changePassModel)
 	res, err := db.Exec(
 		sqlStatement,
-		driver.Password, dto.CurrUser, currTime, driver.ID)
+		changePassModel.Password, dto.CurrUser, currTime, changePassModel.DriverId)
 
 	if err != nil {
 		return "", err
@@ -294,5 +294,26 @@ func AsyncQuerySearchDriver(db *sql.DB, sqlFind string, drivers *[]model.Driver,
 		*drivers = append(*drivers, driver)
 	}
 	resChan <- nil
+
+}
+
+func FindPasswordDriverById(id int) (string, error) {
+	db := database.GetConn
+
+	sqlStatement := `
+		SELECT password
+		FROM drivers
+		WHERE id = ?;
+	`
+	var password string
+	err := db().
+		QueryRow(sqlStatement, id).
+		Scan(
+			&password,
+		)
+	if err != nil {
+		return password, err
+	}
+	return password, nil
 
 }

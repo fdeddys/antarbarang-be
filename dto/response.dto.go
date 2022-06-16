@@ -48,3 +48,9 @@ type SearchTransaksiRequestDto struct {
 	Tgl2         string `json:"tgl2"`
 	DriverID     string `json:"driverId"`
 }
+
+type ChangePasswordRequestDto struct {
+	DriverId    int    `json:"driverId"`
+	Password    string `json:"password"`
+	OldPassword string `json:"oldPassword"`
+}

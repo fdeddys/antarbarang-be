@@ -84,6 +84,46 @@ func (t *TransaksiService) SearchTransaksiPage(searchRequestDto dto.SearchTransa
 	data, totalData, err := repository.GetTransaksiPage(searchRequestDto, page, count)
 
 	if err != nil {
+
+		result.Contents = data
+		result.Error = err.Error()
+		return result
+	}
+	result.Contents = data
+	result.TotalRow = totalData
+	result.Page = page
+	result.Count = len(data)
+
+	return result
+}
+
+func (t *TransaksiService) SearchTransaksiByDriverByTanggalAntar(searchRequestDto dto.SearchTransaksiRequestDto) dto.SearchResultDto {
+
+	var result dto.SearchResultDto
+	data, err := repository.GetTransaksiByDriverByTanggalAntar(searchRequestDto)
+
+	if err != nil {
+
+		result.Contents = data
+		result.Error = err.Error()
+		return result
+	}
+	result.Contents = data
+	result.TotalRow = len(data)
+	result.Page = 1
+	result.Count = len(data)
+
+	return result
+}
+
+func (t *TransaksiService) SearchTransaksiByTglAntarPage(searchRequestDto dto.SearchTransaksiRequestDto, page, count int) dto.SearchResultDto {
+
+	var result dto.SearchResultDto
+	data, totalData, err := repository.GetTransaksiByTglAntarPage(searchRequestDto, page, count)
+
+	if err != nil {
+
+		result.Contents = data
 		result.Error = err.Error()
 		return result
 	}

@@ -150,10 +150,10 @@ func DriverUpdateStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 func DriverChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
-	var driver model.Driver
+	var changeReqModel dto.ChangePasswordRequestDto
 
 	dataBodyReq, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(dataBodyReq, &driver)
+	err := json.Unmarshal(dataBodyReq, &changeReqModel)
 
 	if err != nil {
 		fmt.Println("Error Struct", err.Error())
@@ -162,7 +162,7 @@ func DriverChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := driverService.ChangePasswordDriver(driver)
+	res := driverService.ChangePasswordDriver(changeReqModel)
 	result, _ := json.Marshal(res)
 	w.Header().Set("content-type", "application-json")
 	w.WriteHeader(http.StatusOK)

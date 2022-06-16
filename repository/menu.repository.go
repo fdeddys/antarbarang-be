@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"com.ddabadi.antarbarang/database"
+	"com.ddabadi.antarbarang/dto"
 	"com.ddabadi.antarbarang/model"
 )
 
@@ -25,6 +26,7 @@ func GetUserMenus(user string) ([]model.Menu, error) {
 	`
 	var menus []model.Menu
 
+	fmt.Println(sqlStatement, "[user]:", dto.CurrUser)
 	datas, err := db().
 		Query(sqlStatement, user)
 
