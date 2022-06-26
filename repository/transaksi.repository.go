@@ -20,22 +20,45 @@ import (
 func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	db := database.GetConn()
 
+	var seller model.Seller
+	sqlSearchSeller := ` 
+		SELECT s.id , s.regional_id, rg.nama 
+		FROM sellers s
+		left join regional r  on s.regional_id = r.id 
+		left join regional_group rg  on rg.id  = r.regional_group_id 
+		WHERE s.id = ?
+	`
+	errSeller := db.QueryRow(
+		sqlSearchSeller,
+		transaksi.IdSeller,
+	).Scan(&seller.ID, &seller.RegionalId, &seller.RegionalGroupName)
+
+	if errSeller != nil {
+		return transaksi, errors.New("Error Table Seller : " + errSeller.Error())
+	}
+
 	var customer model.Customer
 	sqlSearchCustomer := ` 
-		SELECT id , coordinate
-		FROM customers
-		WHERE id = ?
+		SELECT c.id , c.coordinate, c.regional_id, rg.nama 
+		FROM customers c  
+		left join regional r  on c.regional_id = r.id 
+		left join regional_group rg  on rg.id  = r.regional_group_id 
+		WHERE c.id = ?
 	`
 	errCustomer := db.QueryRow(
 		sqlSearchCustomer,
 		transaksi.IdCustomer,
-	).Scan(&customer.ID, &customer.Coordinate)
+	).Scan(&customer.ID, &customer.Coordinate, &customer.RegionalId, &customer.RegionalGroupName)
 
 	if errCustomer != nil {
 		return transaksi, errors.New("Error Table Customer : " + errCustomer.Error())
 	}
 
+	transaksi.RegionalSeller = seller.RegionalId
+	transaksi.RegionalGroupSeller = seller.RegionalGroupName
 	transaksi.CoordinateTujuan = customer.Coordinate
+	transaksi.RegionalCustomer = customer.RegionalId
+	transaksi.RegionalGroupCustomer = customer.RegionalGroupName
 	transaksi.TransaksiDate = util.GetCurrDate().Format("2006-01-02")
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.NEW)
 	transaksi.LastUpdate = util.GetCurrDate().Format("2006-01-02 15:04:05")
@@ -44,8 +67,8 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	fmt.Println("Transaksi = ", transaksi)
 	sqlStatement := `
 		INSERT INTO transaksi
-			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?)
+			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update, regional_seller, regional_customer, regional_group_seller, regional_group_customer )
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
 	ctx, errFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer errFunc()
@@ -71,6 +94,10 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 		transaksi.IdCustomer,
 		transaksi.LastUpdateBy,
 		transaksi.LastUpdate,
+		transaksi.RegionalSeller,
+		transaksi.RegionalCustomer,
+		transaksi.RegionalGroupSeller,
+		transaksi.RegionalGroupCustomer,
 	)
 
 	if err != nil {
@@ -114,6 +141,7 @@ func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) 
 	}
 
 	transaksi.CoordinateTujuan = customer.Coordinate
+	transaksi.RegionalCustomer = customer.RegionalId
 	transaksi.TransaksiDate = util.GetCurrDate().Format("2006-01-02")
 	transaksi.LastUpdate = util.GetCurrDate().Format("2006-01-02 15:04:05")
 	transaksi.LastUpdateBy = dto.CurrUser
@@ -369,7 +397,11 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 			IFNULL(c.hp,"") , 
 			IFNULL(id_admin,0), 
 			t.last_update_by, 
-			t.last_update
+			t.last_update,
+			t.regional_seller,
+			t.regional_group_seller,
+			t.regional_customer ,
+			t.regional_group_customer 
 		FROM transaksi t
 		left join sellers s on t.id_seller  = s.id
 		left join drivers d on t.id_driver = d.id 
@@ -500,6 +532,10 @@ func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.T
 			&transaksi.IdAdmin,
 			&transaksi.LastUpdateBy,
 			&transaksi.LastUpdate,
+			&transaksi.RegionalSeller,
+			&transaksi.RegionalGroupSeller,
+			&transaksi.RegionalCustomer,
+			&transaksi.RegionalGroupCustomer,
 		)
 		transaksi.TransaksiDateStr = transaksi.TransaksiDate
 		transaksi.LastUpdateStr = (transaksi.LastUpdate)

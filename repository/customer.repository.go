@@ -21,7 +21,7 @@ func FindCustomerById(id int) (model.Customer, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
 		FROM customers	
 		WHERE id = ?;
 	`
@@ -36,10 +36,10 @@ func FindCustomerById(id int) (model.Customer, error) {
 			&customer.Alamat,
 			&customer.Coordinate,
 			&customer.Status,
+			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
 		)
-	customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
 	if err != nil {
 		return customer, err
 	}
@@ -56,8 +56,8 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 
 	sqlStatement := `
 		INSERT INTO customers
-			(seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			(seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -74,8 +74,9 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 		customer.Alamat,
 		customer.Coordinate,
 		enumerate.ACTIVE,
+		customer.RegionalId,
 		dto.CurrUser,
-		util.GetCurrTimeUnix(),
+		util.GetCurrTimeString(),
 	)
 	if err != nil {
 		return 0, err
@@ -93,7 +94,7 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 	db := database.GetConn
 
 	datas, err := db().Query(`
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
 		FROM customers	
 		WHERE seller_id= ? `,
 		sellerId)
@@ -111,10 +112,10 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 			&customer.Alamat,
 			&customer.Coordinate,
 			&customer.Status,
+			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
 		)
-		customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
 		if err != nil {
 			fmt.Println("Error fetch data next")
 		}
@@ -131,7 +132,7 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 	db := database.GetConn()
 
 	sqlFindCustomerByNama := `
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
 		FROM customers	
 		WHERE nama like ? 
 	`
@@ -162,10 +163,10 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 			&customer.Alamat,
 			&customer.Coordinate,
 			&customer.Status,
+			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
 		)
-		customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
 		if err != nil {
 			fmt.Println("Error fetch data next : ", err.Error())
 		}
@@ -178,18 +179,18 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 
 func UpdateCustomer(customer model.Customer) (string, error) {
 
-	currTime := util.GetCurrTimeUnix()
+	currTime := util.GetCurrTimeString()
 	db := database.GetConn()
 
 	sqlStatement := `
 		UPDATE customers
-		SET nama=?,  last_update_by=?, last_update=?, hp=?, alamat=?, coordinate = ?
+		SET nama=?,  last_update_by=?, last_update=?, hp=?, alamat=?, coordinate = ?, seller_id = ?, regional_id =?
 		WHERE id=?;
 	`
 
 	res, err := db.Exec(
 		sqlStatement,
-		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.Coordinate, customer.ID)
+		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.Coordinate, customer.SellerId, customer.RegionalId, customer.ID)
 
 	if err != nil {
 		return "", err
@@ -200,7 +201,7 @@ func UpdateCustomer(customer model.Customer) (string, error) {
 
 func UpdateStatusCustomer(idCustomer int64, statusCustomer interface{}) (string, error) {
 
-	currTime := util.GetCurrTimeUnix()
+	currTime := util.GetCurrTimeString()
 	db := database.GetConn()
 
 	sqlStatement := `
@@ -240,10 +241,11 @@ func generateQueryCustomer(searchRequestDto dto.SearchRequestDto, page, limit in
 				then ' '
 				else s.nama 
 			end as seller ,
-			c.nama, c.hp, c.alamat, c.coordinate, c.status, c.last_update_by, c.last_update
+			c.nama, c.hp, c.alamat, c.coordinate, c.status, c.regional_id, c.last_update_by, c.last_update, r.nama 
 		FROM customers c `
 	where := `
 		left join sellers s on c.seller_id = s.id		
+		left join regional r on r.id = c.regional_id 
 		WHERE ( c.nama like '%v' ) and ( ( not %v ) or (seller_id = %v) ) 
 		ORDER BY c.nama  
 	`
@@ -251,7 +253,8 @@ func generateQueryCustomer(searchRequestDto dto.SearchRequestDto, page, limit in
 		LIMIT %v, %v
 	`
 
-	sqlFind = fmt.Sprintf(sqlFind+where+limitQuery, kriteriaKode, searchSellerID, sellerId, ((page - 1) * limit), limit)
+	sqlFind = fmt.Sprintf(sqlFind+where+limitQuery, kriteriaKode, searchSellerID, sellerId,
+		((page - 1) * limit), limit)
 	fmt.Println("Query Find = ", sqlFind)
 
 	sqlCount := `
@@ -320,10 +323,11 @@ func AsyncQuerySearchCustomer(db *sql.DB, sqlFind string, customers *[]model.Cus
 			&customer.Alamat,
 			&customer.Coordinate,
 			&customer.Status,
+			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
+			&customer.RegionalName,
 		)
-		customer.LastUpdateStr = util.DateUnixToString(customer.LastUpdate)
 		if err != nil {
 			fmt.Println("Error fetch data next : ", err.Error())
 		}

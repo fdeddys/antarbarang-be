@@ -28,3 +28,7 @@ func DateUnixToString(intTime int64) string {
 
 	return t.UTC().Format(layout)
 }
+
+func GetCurrTimeString() string {
+	return time.Now().Format("2006-01-02 15:04:05")
+}

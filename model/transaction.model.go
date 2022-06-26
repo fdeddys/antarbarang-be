@@ -37,6 +37,10 @@ type Transaksi struct {
 	LastUpdateBy           string                    `json:"lastUpdateBy"`
 	LastUpdate             string                    `json:"lastUpdate"`
 	LastUpdateStr          string                    `json:"lastUpdateStr"`
+	RegionalSeller         int64                     `json:"regionalSeller"`
+	RegionalCustomer       int64                     `json:"regionalCustomer"`
+	RegionalGroupSeller    string                    `json:"regionalGroupSeller"`
+	RegionalGroupCustomer  string                    `json:"regionalGroupCustomer"`
 }
 
 // TableName ...

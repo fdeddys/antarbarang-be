@@ -22,7 +22,7 @@ func FindSellerById(id int64) (model.Seller, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, kode, nama, hp, alamat, status, last_update_by, last_update
+		SELECT id, kode, nama, hp, alamat, status, regional_id, last_update_by, last_update
 		FROM sellers
 		WHERE id = ?;
 	`
@@ -36,13 +36,13 @@ func FindSellerById(id int64) (model.Seller, error) {
 			&seller.Hp,
 			&seller.Alamat,
 			&seller.Status,
+			&seller.RegionalId,
 			&seller.LastUpdateBy,
 			&seller.LastUpdate,
 		)
 	if err != nil {
 		return seller, err
 	}
-	seller.LastUpdateStr = util.DateUnixToString(seller.LastUpdate)
 	return seller, nil
 }
 
@@ -51,7 +51,7 @@ func FindSellerByCode(kode string) (model.Seller, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, kode, nama, hp, alamat, status, last_update_by, last_update
+		SELECT id, kode, nama, hp, alamat, status, regional_id, last_update_by, last_update
 		FROM sellers
 		WHERE kode = ?;
 	`
@@ -65,10 +65,10 @@ func FindSellerByCode(kode string) (model.Seller, error) {
 			&seller.Hp,
 			&seller.Alamat,
 			&seller.Status,
+			&seller.RegionalId,
 			&seller.LastUpdateBy,
 			&seller.LastUpdate,
 		)
-	seller.LastUpdateStr = util.DateUnixToString(seller.LastUpdate)
 	if err != nil {
 		return seller, err
 	}
@@ -87,8 +87,8 @@ func SaveSeller(seller model.Seller) (model.Seller, error) {
 
 	sqlStatement := `
 		INSERT INTO sellers
-			(nama, hp, kode, password, alamat,  status, last_update_by, last_update)
-		VALUES (?,?,?,?,?,?,?,?)
+			(nama, hp, kode, password, alamat,  status, regional_id, last_update_by, last_update)
+		VALUES (?,?,?,?,?,?,?,?,?)
 	`
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -99,7 +99,7 @@ func SaveSeller(seller model.Seller) (model.Seller, error) {
 	}
 
 	res, err := stmt.ExecContext(ctx,
-		seller.Nama, seller.Hp, seller.Kode, seller.Password, seller.Alamat, seller.Status, dto.CurrUser, util.GetCurrTimeUnix(),
+		seller.Nama, seller.Hp, seller.Kode, seller.Password, seller.Alamat, seller.Status, seller.RegionalId, dto.CurrUser, util.DateUnixToString,
 	)
 
 	if err != nil {
@@ -134,18 +134,18 @@ func LoginSellerByCode(kode string) (model.Seller, error) {
 
 func UpdateSeller(seller model.Seller) (string, error) {
 
-	currTime := util.GetCurrTimeUnix()
+	currTime := util.GetCurrTimeString()
 	db := database.GetConn()
 
 	sqlStatement := `
 		UPDATE sellers
-		SET nama=?, last_update_by=?, last_update=?, hp=?, alamat=?
+		SET nama=?, last_update_by=?, last_update=?, hp=?, alamat=?, regional_id=?
 		WHERE id=?;
 	`
 
 	res, err := db.Exec(
 		sqlStatement,
-		seller.Nama, dto.CurrUser, currTime, seller.Hp, seller.Alamat, seller.ID)
+		seller.Nama, dto.CurrUser, currTime, seller.Hp, seller.Alamat, seller.RegionalId, seller.ID)
 
 	if err != nil {
 		return "", err
@@ -156,7 +156,7 @@ func UpdateSeller(seller model.Seller) (string, error) {
 
 func UpdateStatusSeller(idSeller int64, statusSeller interface{}) (string, error) {
 
-	currTime := util.GetCurrTimeUnix()
+	currTime := util.GetCurrTimeString()
 	db := database.GetConn()
 
 	sqlStatement := `
@@ -178,7 +178,7 @@ func UpdateStatusSeller(idSeller int64, statusSeller interface{}) (string, error
 
 func ChangePasswordSeller(seller model.Seller) (string, error) {
 
-	currTime := util.GetCurrTimeUnix()
+	currTime := util.GetCurrTimeString()
 	db := database.GetConn()
 
 	sqlStatement := `
@@ -201,9 +201,10 @@ func ChangePasswordSeller(seller model.Seller) (string, error) {
 func generateQuerySeller(searchRequestDto dto.SearchRequestDto, page, limit int) (string, string) {
 
 	sqlFind := `
-		SELECT id, nama, hp, kode,  alamat, status, last_update_by, last_update
-		FROM db_antar_barang.sellers	
-		WHERE nama like '%' and kode like '%' 
+		SELECT s.id, s.nama, s.hp, s.kode,  s.alamat, s.status, s.regional_id, s.last_update_by, s.last_update, r.nama 
+		FROM sellers s	
+		left join regional r on r.id = s.regional_id   
+		WHERE s.nama like '%' and s.kode like '%' 
 	`
 	sqlCount := `
 		SELECT count(*)
@@ -268,10 +269,11 @@ func AsyncQuerySearchSeller(db *sql.DB, sqlFindSeller string, sellers *[]model.S
 			&seller.Kode,
 			&seller.Alamat,
 			&seller.Status,
+			&seller.RegionalId,
 			&seller.LastUpdateBy,
 			&seller.LastUpdate,
+			&seller.RegionalName,
 		)
-		seller.LastUpdateStr = util.DateUnixToString(seller.LastUpdate)
 		if err != nil {
 			fmt.Println("Error fetch data next : ", err.Error())
 		}

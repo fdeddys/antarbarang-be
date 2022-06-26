@@ -80,6 +80,17 @@ func InitRouter() *mux.Router {
 	s = r.PathPrefix(pathPref + "/menu").Subrouter()
 	s.HandleFunc("/list-user-menu", handlers.GetMenuByUsernameHandler).Methods(http.MethodGet)
 
+	s = r.PathPrefix(pathPref + "/regional-group").Subrouter()
+	s.HandleFunc("/all/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.RegionalGroupAllHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.RegionalGroupCreateHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.RegionalGroupUpdateHandler).Methods(http.MethodPut)
+
+	s = r.PathPrefix(pathPref + "/regional").Subrouter()
+	s.HandleFunc("/{groupRegionalId:[0-9]+}", handlers.RegionalByGroupRegionalIdHandler).Methods(http.MethodGet)
+	s.HandleFunc("", handlers.RegionalCreateHandler).Methods(http.MethodPost)
+	s.HandleFunc("", handlers.RegionalUpdateHandler).Methods(http.MethodPut)
+	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetRegionalPageHandler).Methods(http.MethodPost)
+
 	s = r.PathPrefix(pathPref + "/version").Subrouter()
 	s.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
 		ver := VersionApp{
