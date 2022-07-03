@@ -401,7 +401,9 @@ func generateQueryTransaksi(searchTransaksiRequestDto dto.SearchTransaksiRequest
 			t.regional_seller,
 			t.regional_group_seller,
 			t.regional_customer ,
-			t.regional_group_customer 
+			t.regional_group_customer,
+			c.lng,
+			c.lat 
 		FROM transaksi t
 		left join sellers s on t.id_seller  = s.id
 		left join drivers d on t.id_driver = d.id 
@@ -536,6 +538,8 @@ func AsyncQuerySearchTransaksi(db *sql.DB, sqlFind string, transaksis *[]model.T
 			&transaksi.RegionalGroupSeller,
 			&transaksi.RegionalCustomer,
 			&transaksi.RegionalGroupCustomer,
+			&transaksi.CustLng,
+			&transaksi.CustLat,
 		)
 		transaksi.TransaksiDateStr = transaksi.TransaksiDate
 		transaksi.LastUpdateStr = (transaksi.LastUpdate)
@@ -593,6 +597,8 @@ func GetTransaksiByDriverByTanggalAntar(searchRequestDto dto.SearchTransaksiRequ
 			&transaksi.IdAdmin,
 			&transaksi.LastUpdateBy,
 			&transaksi.LastUpdate,
+			&transaksi.CustLng,
+			&transaksi.CustLat,
 		)
 		transaksi.TransaksiDateStr = transaksi.TransaksiDate
 		transaksi.LastUpdateStr = (transaksi.LastUpdate)
@@ -665,7 +671,9 @@ func generateQueryTransaksiByDriverByTanggalAntar(searchTransaksiRequestDto dto.
 			IFNULL(c.hp,"") , 
 			IFNULL(id_admin,0), 
 			t.last_update_by, 
-			t.last_update
+			t.last_update,
+			c.lng,
+			c.lat
 		FROM transaksi t
 		left join sellers s on t.id_seller  = s.id
 		left join drivers d on t.id_driver = d.id 
@@ -790,7 +798,13 @@ func generateQueryTransaksiPickupByTglAntar(searchTransaksiRequestDto dto.Search
 			IFNULL(c.hp,"") , 
 			IFNULL(id_admin,0), 
 			t.last_update_by, 
-			t.last_update
+			t.last_update,
+			IFNULL(t.regional_seller,0),
+			IFNULL(t.regional_group_seller,""),
+			IFNULL(t.regional_customer,0) ,
+			IFNULL(t.regional_group_customer,""),
+			c.lng,
+			c.lat
 		FROM transaksi t
 		left join sellers s on t.id_seller  = s.id
 		left join drivers d on t.id_driver = d.id 

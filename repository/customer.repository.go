@@ -21,7 +21,7 @@ func FindCustomerById(id int) (model.Customer, error) {
 	// defer db.Close()
 
 	sqlStatement := `
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update, lng, lat
 		FROM customers	
 		WHERE id = ?;
 	`
@@ -39,6 +39,8 @@ func FindCustomerById(id int) (model.Customer, error) {
 			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
+			&customer.Lng,
+			&customer.Lat,
 		)
 	if err != nil {
 		return customer, err
@@ -56,8 +58,8 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 
 	sqlStatement := `
 		INSERT INTO customers
-			(seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			(seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update, lng, lat)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`
 
 	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
@@ -77,6 +79,8 @@ func SaveCustomer(customer model.Customer) (int64, error) {
 		customer.RegionalId,
 		dto.CurrUser,
 		util.GetCurrTimeString(),
+		customer.Lng,
+		customer.Lat,
 	)
 	if err != nil {
 		return 0, err
@@ -94,7 +98,7 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 	db := database.GetConn
 
 	datas, err := db().Query(`
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update, lng, lat
 		FROM customers	
 		WHERE seller_id= ? `,
 		sellerId)
@@ -115,6 +119,8 @@ func FindCustomerBySellerId(sellerId int64) ([]model.Customer, error) {
 			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
+			&customer.Lng,
+			&customer.Lat,
 		)
 		if err != nil {
 			fmt.Println("Error fetch data next")
@@ -132,7 +138,7 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 	db := database.GetConn()
 
 	sqlFindCustomerByNama := `
-		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update
+		SELECT id, seller_id, nama, hp, alamat, coordinate, status, regional_id, last_update_by, last_update, lng, lat
 		FROM customers	
 		WHERE nama like ? 
 	`
@@ -166,6 +172,8 @@ func FindCustomerByNama(nama string) ([]model.Customer, error) {
 			&customer.RegionalId,
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
+			&customer.Lng,
+			&customer.Lat,
 		)
 		if err != nil {
 			fmt.Println("Error fetch data next : ", err.Error())
@@ -184,13 +192,13 @@ func UpdateCustomer(customer model.Customer) (string, error) {
 
 	sqlStatement := `
 		UPDATE customers
-		SET nama=?,  last_update_by=?, last_update=?, hp=?, alamat=?, coordinate = ?, seller_id = ?, regional_id =?
+		SET nama=?,  last_update_by=?, last_update=?, hp=?, alamat=?, coordinate = ?, seller_id = ?, regional_id =?, lng = ?, lat = ?
 		WHERE id=?;
 	`
 
 	res, err := db.Exec(
 		sqlStatement,
-		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.Coordinate, customer.SellerId, customer.RegionalId, customer.ID)
+		customer.Nama, dto.CurrUser, currTime, customer.Hp, customer.Alamat, customer.Coordinate, customer.SellerId, customer.RegionalId, customer.Lng, customer.Lat, customer.ID)
 
 	if err != nil {
 		return "", err
@@ -241,7 +249,9 @@ func generateQueryCustomer(searchRequestDto dto.SearchRequestDto, page, limit in
 				then ' '
 				else s.nama 
 			end as seller ,
-			c.nama, c.hp, c.alamat, c.coordinate, c.status, c.regional_id, c.last_update_by, c.last_update, r.nama 
+			c.nama, c.hp, c.alamat, c.coordinate, c.status, c.regional_id, c.last_update_by, c.last_update, 
+			IFNULL(r.nama,"")  , 
+			c.lng, c.lat 
 		FROM customers c `
 	where := `
 		left join sellers s on c.seller_id = s.id		
@@ -327,6 +337,8 @@ func AsyncQuerySearchCustomer(db *sql.DB, sqlFind string, customers *[]model.Cus
 			&customer.LastUpdateBy,
 			&customer.LastUpdate,
 			&customer.RegionalName,
+			&customer.Lng,
+			&customer.Lat,
 		)
 		if err != nil {
 			fmt.Println("Error fetch data next : ", err.Error())

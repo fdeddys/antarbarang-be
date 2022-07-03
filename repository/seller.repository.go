@@ -99,7 +99,15 @@ func SaveSeller(seller model.Seller) (model.Seller, error) {
 	}
 
 	res, err := stmt.ExecContext(ctx,
-		seller.Nama, seller.Hp, seller.Kode, seller.Password, seller.Alamat, seller.Status, seller.RegionalId, dto.CurrUser, util.DateUnixToString,
+		seller.Nama,
+		seller.Hp,
+		seller.Kode,
+		seller.Password,
+		seller.Alamat,
+		seller.Status,
+		seller.RegionalId,
+		dto.CurrUser,
+		util.GetCurrTimeString(),
 	)
 
 	if err != nil {

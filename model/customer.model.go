@@ -16,4 +16,6 @@ type Customer struct {
 	RegionalId        int64                  `json:"regionalId"`
 	RegionalGroupName string                 `json:"regionalGroupName"`
 	RegionalName      string                 `json:"regionalName"`
+	Lng               string                 `json:"lng"`
+	Lat               string                 `json:"lat"`
 }

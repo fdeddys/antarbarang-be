@@ -60,8 +60,8 @@ func (d *SellerService) GetSellerByKode(kode string) dto.ContentResponse {
 	return result
 }
 
-func (s *SellerService) LoginSellerByKode(kode, password string) dto.ContentResponse {
-	var result dto.ContentResponse
+func (s *SellerService) LoginSellerByKode(kode, password string) dto.LoginResponseDto {
+	var result dto.LoginResponseDto
 	result.ErrCode = constanta.ERR_CODE_00
 	result.ErrDesc = constanta.ERR_CODE_00_MSG
 
@@ -69,25 +69,25 @@ func (s *SellerService) LoginSellerByKode(kode, password string) dto.ContentResp
 	if err != nil {
 		result.ErrCode = constanta.ERR_CODE_11
 		result.ErrDesc = constanta.ERR_CODE_11_FAILED_GET_DATA
-		result.Contents = err.Error()
+		result.Token = ""
 		return result
 	}
 
 	if seller.Status != enumerate.ACTIVE {
 		result.ErrCode = constanta.ERR_CODE_20
 		result.ErrDesc = constanta.ERR_CODE_20_LOGIN_FAILED
-		result.Contents = "User status not active !"
+		result.Token = ""
 		return result
 	}
 
 	if seller.Password != password {
 		result.ErrCode = constanta.ERR_CODE_20
 		result.ErrDesc = constanta.ERR_CODE_20_LOGIN_FAILED
-		result.Contents = "Password not match !"
+		result.Token = ""
 		return result
 	}
 
-	result.Contents = "Login success"
+	result.Token = generateToken(seller.Nama, seller.ID)
 	return result
 }
 
