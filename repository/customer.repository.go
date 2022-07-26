@@ -349,3 +349,25 @@ func AsyncQuerySearchCustomer(db *sql.DB, sqlFind string, customers *[]model.Cus
 	return
 
 }
+
+func UpdateLngLatCustomer(idCustomer int64, lat, lng string) (string, error) {
+
+	currTime := util.GetCurrTimeString()
+	db := database.GetConn()
+
+	sqlStatement := `
+		UPDATE customers
+		SET lat= ?, lng=?, last_update_by= ?, last_update= ?
+		WHERE id  = ?;
+	`
+
+	res, err := db.Exec(
+		sqlStatement,
+		lat, lng, dto.CurrUser, currTime, idCustomer)
+
+	if err != nil {
+		return "", err
+	}
+	totalData, _ := res.RowsAffected()
+	return fmt.Sprintf("update data success : %v record's!", totalData), err
+}

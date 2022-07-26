@@ -21,6 +21,7 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	db := database.GetConn()
 
 	var seller model.Seller
+	var biaya int64
 	sqlSearchSeller := ` 
 		SELECT s.id , s.regional_id, rg.nama 
 		FROM sellers s
@@ -54,6 +55,15 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 		return transaksi, errors.New("Error Table Customer : " + errCustomer.Error())
 	}
 
+	// hitung
+	sameRegionRp, diffRegionRp := getBiaya()
+
+	if seller.RegionalId == customer.RegionalId {
+		biaya = sameRegionRp
+	} else {
+		biaya = diffRegionRp
+	}
+
 	transaksi.RegionalSeller = seller.RegionalId
 	transaksi.RegionalGroupSeller = seller.RegionalGroupName
 	transaksi.CoordinateTujuan = customer.Coordinate
@@ -63,12 +73,13 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	transaksi.Status = enumerate.StatusTransaksi(enumerate.NEW)
 	transaksi.LastUpdate = util.GetCurrDate().Format("2006-01-02 15:04:05")
 	transaksi.LastUpdateBy = dto.CurrUser
+	transaksi.Biaya = biaya
 
 	fmt.Println("Transaksi = ", transaksi)
 	sqlStatement := `
 		INSERT INTO transaksi
-			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update, regional_seller, regional_customer, regional_group_seller, regional_group_customer )
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+			(transaksi_date, jam_request_antar, tanggal_request_antar, nama_product, status, coordinate_tujuan, keterangan, id_seller, id_customer, last_update_by, last_update, regional_seller, regional_customer, regional_group_seller, regional_group_customer, biaya )
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 	`
 	ctx, errFunc := context.WithTimeout(context.Background(), 5*time.Second)
 	defer errFunc()
@@ -98,6 +109,7 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 		transaksi.RegionalCustomer,
 		transaksi.RegionalGroupSeller,
 		transaksi.RegionalGroupCustomer,
+		transaksi.Biaya,
 	)
 
 	if err != nil {
@@ -121,6 +133,16 @@ func NewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {
 	// }
 	// transaksi.ID = int64(lastInsertId)
 	return transaksi, nil
+}
+
+func getBiaya() (int64, int64) {
+	biayaTransaksi1, _, _, _ := GetParameterByNama("biaya_transaksi")
+	biayaTransaksi2, _, _, _ := GetParameterByNama("biaya_transaksi_non_regional")
+
+	biaya1, _ := strconv.ParseInt(biayaTransaksi1.Value, 10, 64)
+	biaya2, _ := strconv.ParseInt(biayaTransaksi2.Value, 10, 64)
+
+	return biaya1, biaya2
 }
 
 func UpdateNewTransaksiRepo(transaksi model.Transaksi) (model.Transaksi, error) {

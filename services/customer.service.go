@@ -139,3 +139,21 @@ func (s *CustomerService) SearchCustomerPage(searchRequestDto dto.SearchRequestD
 
 	return result
 }
+
+func (c *CustomerService) UpdateLngLat(updateLngLat dto.UpdateLngLatCustomerRequestDto) dto.ContentResponse {
+
+	var result dto.ContentResponse
+	result.ErrCode = constanta.ERR_CODE_00
+	result.ErrDesc = constanta.ERR_CODE_00_MSG
+
+	msg, err := repository.UpdateLngLatCustomer(updateLngLat.CustId, updateLngLat.Lat, updateLngLat.Lng)
+
+	if err != nil {
+		result.Contents = err.Error()
+		result.ErrCode = constanta.ERR_CODE_12
+		result.ErrDesc = constanta.ERR_CODE_12_FAILED_UPDATE_DATA
+		return result
+	}
+	result.Contents = msg
+	return result
+}

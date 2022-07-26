@@ -44,6 +44,7 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("/nama", handlers.GetCustomerByNamaHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.CustomerCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.CustomerUpdateHandler).Methods(http.MethodPut)
+	s.HandleFunc("", handlers.CustomerUpdatLngLatHandler).Methods(http.MethodPatch)
 	s.HandleFunc("/{customer-id}/status/{active}", handlers.CustomerUpdateStatusHandler).Methods(http.MethodPost)
 	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetCustomerPageHandler).Methods(http.MethodPost)
 
@@ -90,6 +91,12 @@ func InitRouter() *mux.Router {
 	s.HandleFunc("", handlers.RegionalCreateHandler).Methods(http.MethodPost)
 	s.HandleFunc("", handlers.RegionalUpdateHandler).Methods(http.MethodPut)
 	s.HandleFunc("/page/{page:[0-9]+}/count/{count:[0-9]+}", handlers.GetRegionalPageHandler).Methods(http.MethodPost)
+
+	s = r.PathPrefix(pathPref + "/menu").Subrouter()
+	s.HandleFunc("/list-user-menu", handlers.GetMenuByUsernameHandler).Methods(http.MethodGet)
+
+	s = r.PathPrefix(pathPref + "/report").Subrouter()
+	s.HandleFunc("/transaksi", handlers.GetReportTransaksi).Methods(http.MethodPost)
 
 	s = r.PathPrefix(pathPref + "/version").Subrouter()
 	s.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {

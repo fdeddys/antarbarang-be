@@ -43,6 +43,7 @@ type Transaksi struct {
 	RegionalGroupCustomer  string                    `json:"regionalGroupCustomer"`
 	CustLng                string                    `json:"custLng"`
 	CustLat                string                    `json:"custLat"`
+	Biaya                  int64                     `json:"biaya"`
 }
 
 // TableName ...
